@@ -73,7 +73,7 @@ def run(dry_run: bool = False, no_notify: bool = False):
 
     # ── 3. HTML 렌더링 ───────────────────────────────────────
     print("\n📄 HTML 렌더링 중...")
-    output_dir = "output"
+    output_dir = "docs"
     html_path = render_html(
         jobs=filtered,
         conditions=conditions,

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>Job Crawler</title>
+  <script>
+    // docs/ 폴더 내 최신 파일로 자동 이동
+    // GitHub Actions가 매일 jobs_YYYY-MM-DD.html 파일을 생성합니다
+    const today = new Date();
+    function pad(n) { return String(n).padStart(2, '0'); }
+    const filename = `jobs_${today.getFullYear()}-${pad(today.getMonth()+1)}-${pad(today.getDate())}.html`;
+    window.location.href = filename;
+  </script>
+  <style>
+    body { font-family: sans-serif; text-align: center; padding: 60px; color: #555; }
+  </style>
+</head>
+<body>
+  <p>최신 채용 공고 페이지로 이동 중...</p>
+  <p><a href="javascript:history.back()">이동하지 않으면 여기를 클릭하세요</a></p>
+</body>
+</html>

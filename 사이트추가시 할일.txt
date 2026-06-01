@@ -1,0 +1,1 @@
+config/search_conditions.yaml 에서 키워드·근무지·사이트를 자유롭게 추가/삭제/수정할 수 있고, 새 사이트를 추가할 때는 crawlers/ 폴더에 파일 하나만 만들면 됩니다.

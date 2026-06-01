@@ -19,7 +19,7 @@ def render_html(
     jobs: list[Job],
     conditions: dict,
     site_configs: list[dict],
-    output_dir: str = "output",
+    output_dir: str = "docs",
     template_dir: str = "templates",
 ) -> str:
     """
