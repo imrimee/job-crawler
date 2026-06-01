@@ -1,0 +1,85 @@
+# ============================================================
+#  Job Crawler — 검색 조건 설정 파일
+#  이 파일만 수정하면 크롤링 대상/조건/근무지를 바꿀 수 있습니다.
+# ============================================================
+
+# ── 크롤링 대상 사이트 ──────────────────────────────────────
+# enabled: false 로 설정하면 해당 사이트는 건너뜁니다.
+sites:
+  - name: "UN Careers"
+    url: "https://careers.un.org"
+    crawler: "un_careers"       # crawlers/ 폴더의 파일명과 일치해야 합니다
+    enabled: true
+
+  # 아래는 나중에 추가할 사이트 예시입니다. enabled: true 로 바꾸면 활성화됩니다.
+  # - name: "ReliefWeb"
+  #   url: "https://reliefweb.int/jobs"
+  #   crawler: "reliefweb"
+  #   enabled: false
+
+  # - name: "LinkedIn Jobs"
+  #   url: "https://www.linkedin.com/jobs"
+  #   crawler: "linkedin"
+  #   enabled: false
+
+  # - name: "UNDP Jobs"
+  #   url: "https://jobs.undp.org"
+  #   crawler: "undp"
+  #   enabled: false
+
+
+# ── 검색 키워드 ─────────────────────────────────────────────
+# 아래 키워드 중 하나라도 직위명/설명에 포함되면 결과에 포함됩니다.
+# 항목을 추가/삭제/수정하세요.
+keywords:
+  - "political science"
+  - "international relations"
+  - "social science"
+  - "public administration"
+  - "political affairs"
+  - "governance"
+  - "peacebuilding"
+
+
+# ── 근무지 필터 ─────────────────────────────────────────────
+# 공고의 근무지(Duty Station)가 아래 목록 중 하나와 일치하면 포함됩니다.
+# 대소문자를 구분하지 않습니다.
+# 비워두면 (locations: []) 모든 근무지를 포함합니다.
+locations:
+  - "United Kingdom"
+  - "London"
+  # - "Geneva"       # 추가 예시
+  # - "New York"     # 추가 예시
+  # - "Nairobi"      # 추가 예시
+
+
+# ── 카테고리 필터 ────────────────────────────────────────────
+# 포함할 카테고리. 비워두면 모든 카테고리를 포함합니다.
+# 예: ["Internship", "Professional", "Consultant"]
+categories: []
+
+
+# ── 마감일 필터 ──────────────────────────────────────────────
+# 오늘로부터 몇 일 이내 마감인 공고만 포함합니다.
+# 0 으로 설정하면 마감일 필터를 사용하지 않습니다.
+deadline_within_days: 60
+
+
+# ── 출력 설정 ────────────────────────────────────────────────
+output:
+  filename_prefix: "jobs"          # 저장 파일명: jobs_YYYY-MM-DD.html
+  keep_last_days: 30               # 최근 30일치 HTML만 보관 (오래된 파일 자동 삭제)
+  timezone: "Asia/Seoul"           # 날짜/시간 표시 기준 타임존
+
+
+# ── 알림 설정 ────────────────────────────────────────────────
+notifications:
+  # Gmail 알림 (GitHub Secret에 GMAIL_USER, GMAIL_APP_PASSWORD 등록 필요)
+  email:
+    enabled: false
+    to: "your@email.com"
+
+  # Slack 웹훅 알림 (GitHub Secret에 SLACK_WEBHOOK_URL 등록 필요)
+  slack:
+    enabled: false
+    mention_on_new: true           # 새 공고 발견 시 @channel 멘션
