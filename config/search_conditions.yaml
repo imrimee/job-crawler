@@ -73,6 +73,67 @@ sites:
 
 
 # ╔══════════════════════════════════════════════════════╗
+# ║              🇪🇺  유럽(EU) 사이트                     ║
+# ╚══════════════════════════════════════════════════════╝
+
+  - name: "ReliefWeb (EU)"
+    url: "https://reliefweb.int/jobs"
+    crawler: "reliefweb_eu"
+    region: "EU"
+    enabled: true
+    note: "UN OCHA 공개 API — 유럽 소재 포지션 필터"
+
+  - name: "EPSO (EU Careers)"
+    url: "https://eu-careers.europa.eu/en/search"
+    crawler: "epso"
+    region: "EU"
+    enabled: true
+    note: "EU 공식 인사선발처. AD급·CAST·Blue Book 스테이지"
+
+  - name: "EU Traineeship (Blue Book)"
+    url: "https://traineeships.ec.europa.eu"
+    crawler: "eu_traineeship"
+    region: "EU"
+    enabled: true
+    note: "EU 집행위 공식 인턴십. 5개월 유급 ~€1,300/월"
+
+  - name: "OSCE Jobs"
+    url: "https://jobs.osce.org"
+    crawler: "osce_jobs"
+    region: "EU"
+    enabled: true
+    note: "유럽안보협력기구. 57개국, 한국 포함 비EU 지원 가능"
+
+  - name: "OECD Careers"
+    url: "https://www.oecd.org/en/about/jobs.html"
+    crawler: "oecd_careers"
+    region: "EU"
+    enabled: true
+    note: "OECD 파리 본부. 한국 회원국, 한국인 지원 가능"
+
+  - name: "Impactpool"
+    url: "https://www.impactpool.org/jobs"
+    crawler: "impactpool"
+    region: "EU"
+    enabled: true
+    note: "800개+ 국제기구·NGO 통합. Junior/Intern 특화"
+
+  - name: "EuroBrussels"
+    url: "https://www.eurobrussels.com/jobs"
+    crawler: "eurobrussels"
+    region: "EU"
+    enabled: true
+    note: "브뤼셀 EU Affairs 특화. 싱크탱크·NGO·EU 기관"
+
+  - name: "EuroJobs"
+    url: "https://www.eurojobs.com"
+    crawler: "eurojobs_eu"
+    region: "EU"
+    enabled: true
+    note: "유럽 전역 영어권 취업 공고. 국제기구·공공기관 포함"
+
+
+# ╔══════════════════════════════════════════════════════╗
 # ║              🇰🇷  한국(KR) 사이트                     ║
 # ╚══════════════════════════════════════════════════════╝
 

@@ -13,6 +13,16 @@ from crawlers.development_aid    import DevelopmentAidCrawler
 from crawlers.civil_service_jobs import CivilServiceJobsCrawler
 from crawlers.w4mp               import W4MPCrawler
 
+# ── 유럽(EU) 사이트 ─────────────────────────────────────────
+from crawlers.reliefweb_eu   import ReliefWebEuCrawler
+from crawlers.epso           import EpsoCrawler
+from crawlers.eu_traineeship import EuTraineeshipCrawler
+from crawlers.osce_jobs      import OsceJobsCrawler
+from crawlers.oecd_careers   import OecdCareersCrawler
+from crawlers.impactpool     import ImpactpoolCrawler
+from crawlers.eurobrussels   import EuroBrusselsCrawler
+from crawlers.eurojobs_eu    import EuroJobsEuCrawler
+
 # ── 한국(KR) 사이트 ─────────────────────────────────────────
 from crawlers.koica         import KoicaCrawler
 from crawlers.mofa_unrecruit import MofaUnrecruitCrawler
@@ -37,6 +47,15 @@ CRAWLER_REGISTRY = {
     "development_aid":    DevelopmentAidCrawler,
     "civil_service_jobs": CivilServiceJobsCrawler,
     "w4mp":               W4MPCrawler,
+    # EU
+    "reliefweb_eu":       ReliefWebEuCrawler,
+    "epso":               EpsoCrawler,
+    "eu_traineeship":     EuTraineeshipCrawler,
+    "osce_jobs":          OsceJobsCrawler,
+    "oecd_careers":       OecdCareersCrawler,
+    "impactpool":         ImpactpoolCrawler,
+    "eurobrussels":       EuroBrusselsCrawler,
+    "eurojobs_eu":        EuroJobsEuCrawler,
     # KR
     "koica":              KoicaCrawler,
     "mofa_unrecruit":     MofaUnrecruitCrawler,

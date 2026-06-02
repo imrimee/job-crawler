@@ -20,9 +20,9 @@ on:
         type: boolean
         default: false
       region:
-        description: '크롤링 지역 필터 (ALL=전체, UK=영국만, KR=한국만)'
+        description: '크롤링 지역 필터 (ALL=전체, UK=영국만, EU=유럽만, KR=한국만)'
         type: choice
-        options: ['ALL', 'UK', 'KR']
+        options: ['ALL', 'UK', 'EU', 'KR']
         default: 'ALL'
       kw_test:
         description: '한국어 키워드 테스트 모드 (결과 수 비교만 출력)'

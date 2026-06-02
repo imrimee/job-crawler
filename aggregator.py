@@ -36,7 +36,7 @@ def filter_jobs(jobs: list[Job], conditions: dict) -> list[Job]:
         if region == "KR":
             kw_pool = all_keywords   # KR: 영어+한국어
         else:
-            kw_pool = en_keywords    # UK: 영어만
+            kw_pool = en_keywords    # UK/EU: 영어만
 
         if kw_pool:
             matched = [kw for kw in kw_pool if kw in searchable]
@@ -47,6 +47,8 @@ def filter_jobs(jobs: list[Job], conditions: dict) -> list[Job]:
         # ── 2. 근무지 필터 ─────────────────────────────
         if region == "KR":
             loc_pool = kr_locations
+        elif region == "EU":
+            loc_pool = []            # EU: 근무지 필터 없음 (전체 수집)
         else:
             loc_pool = uk_locations
 
@@ -94,11 +96,13 @@ def sort_jobs(jobs: list[Job]) -> list[Job]:
 def group_by_region(jobs: list[Job], site_configs: list[dict]) -> dict[str, list[Job]]:
     """영국/한국별로 분류합니다. HTML 렌더링에 사용됩니다."""
     site_region = {s["name"]: s.get("region", "UK") for s in site_configs}
-    groups: dict[str, list[Job]] = {"🇬🇧 영국 (UK)": [], "🇰🇷 한국 (KR)": []}
+    groups: dict[str, list[Job]] = {"🇬🇧 영국 (UK)": [], "🇪🇺 유럽 (EU)": [], "🇰🇷 한국 (KR)": []}
     for job in jobs:
         region = site_region.get(job.source_site, "UK").upper()
         if region == "KR":
             groups["🇰🇷 한국 (KR)"].append(job)
+        elif region == "EU":
+            groups["🇪🇺 유럽 (EU)"].append(job)
         else:
             groups["🇬🇧 영국 (UK)"].append(job)
     return {k: v for k, v in groups.items() if v}

@@ -203,10 +203,10 @@ def _dummy_jobs() -> list[Job]:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Job Crawler (UK + KR)")
+    parser = argparse.ArgumentParser(description="Job Crawler (UK + EU + KR)")
     parser.add_argument("--dry-run",   action="store_true", help="더미 데이터로 HTML만 생성")
     parser.add_argument("--no-notify", action="store_true", help="알림 없이 실행")
-    parser.add_argument("--region",    type=str, default=None, help="UK 또는 KR만 실행")
+    parser.add_argument("--region",    type=str, default=None, help="UK / EU / KR 중 하나만 실행")
     parser.add_argument("--kw-test",   action="store_true", help="한국어 키워드 테스트 리포트 출력")
     args = parser.parse_args()
     run(dry_run=args.dry_run, no_notify=args.no_notify,
