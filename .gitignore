@@ -3,3 +3,5 @@ __pycache__/
 .env
 .seen_jobs.json
 venv/
+*.html
+.DS_Store

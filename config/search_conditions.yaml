@@ -8,18 +8,80 @@
 sites:
   - name: "UN Careers"
     url: "https://careers.un.org"
-    crawler: "un_careers"       # crawlers/ 폴더의 파일명과 일치해야 합니다
+    crawler: "un_careers"
     enabled: true
 
-  # 아래는 나중에 추가할 사이트 예시입니다. enabled: true 로 바꾸면 활성화됩니다.
-  # - name: "ReliefWeb"
-  #   url: "https://reliefweb.int/jobs"
-  #   crawler: "reliefweb"
-  #   enabled: false
+  - name: "ReliefWeb"
+    url: "https://reliefweb.int/jobs"
+    crawler: "reliefweb"
+    enabled: true
+    note: "UN OCHA 운영, 공개 API 사용 — 빠르고 안정적"
 
-  # - name: "LinkedIn Jobs"
+  - name: "Jobs.ac.uk"
+    url: "https://www.jobs.ac.uk"
+    crawler: "jobs_ac_uk"
+    enabled: true
+    note: "영국 학술·연구기관 채용 1위"
+
+  - name: "Guardian Jobs"
+    url: "https://jobs.theguardian.com"
+    crawler: "guardian_jobs"
+    enabled: true
+    note: "NGO·싱크탱크·공공정책 특화"
+
+  - name: "Prospects.ac.uk"
+    url: "https://www.prospects.ac.uk"
+    crawler: "prospects"
+    enabled: true
+    note: "영국 대졸자 1위 취업 포털"
+
+  - name: "Idealist"
+    url: "https://www.idealist.org"
+    crawler: "idealist"
+    enabled: true
+    note: "NGO·비영리 인턴십 특화"
+
+  - name: "DevelopmentAid"
+    url: "https://www.developmentaid.org/jobs"
+    crawler: "development_aid"
+    enabled: true
+    note: "국제개발·ODA 분야 전문 (무료 공고만 수집)"
+
+  - name: "Civil Service Jobs"
+    url: "https://www.civilservicejobs.service.gov.uk"
+    crawler: "civil_service_jobs"
+    enabled: true
+    note: "영국 정부 공식 채용 포털. 일부 포지션 비자 제한 있음"
+
+  - name: "W4MP"
+    url: "https://www.w4mp.org"
+    crawler: "w4mp"
+    enabled: true
+    note: "영국 의회·Westminster 특화"
+
+  # ── 제외된 사이트 (이유 기재) ─────────────────────────────
+  # - name: "LinkedIn UK"
   #   url: "https://www.linkedin.com/jobs"
   #   crawler: "linkedin"
+  #   enabled: false
+  #   note: "❌ 제외 — 강력한 봇 차단 및 로그인 필수"
+
+  # - name: "LSE Careers"
+  #   url: "https://careers.lse.ac.uk"
+  #   crawler: "lse_careers"
+  #   enabled: false
+  #   note: "❌ 제외 — LSE 학생/동문 로그인 필수"
+
+  # - name: "Devex"
+  #   url: "https://www.devex.com/jobs"
+  #   crawler: "devex"
+  #   enabled: false
+  #   note: "❌ 제외 — 전체 공고 유료 구독 필요"
+
+  # ── 나중에 추가할 사이트 예시 ─────────────────────────────
+  # - name: "Charity Job"
+  #   url: "https://www.charityjob.co.uk"
+  #   crawler: "charity_job"
   #   enabled: false
 
   # - name: "UNDP Jobs"
@@ -29,8 +91,8 @@ sites:
 
 
 # ── 검색 키워드 ─────────────────────────────────────────────
-# 아래 키워드 중 하나라도 직위명/설명에 포함되면 결과에 포함됩니다.
-# 항목을 추가/삭제/수정하세요.
+# 항목 중 하나라도 직위명/설명에 포함되면 결과에 포함됩니다.
+# 추가/삭제/수정 자유롭게 가능합니다.
 keywords:
   - "political science"
   - "international relations"
@@ -39,47 +101,44 @@ keywords:
   - "political affairs"
   - "governance"
   - "peacebuilding"
+  - "policy analyst"
+  - "research officer"
+  - "humanitarian"
 
 
 # ── 근무지 필터 ─────────────────────────────────────────────
-# 공고의 근무지(Duty Station)가 아래 목록 중 하나와 일치하면 포함됩니다.
-# 대소문자를 구분하지 않습니다.
-# 비워두면 (locations: []) 모든 근무지를 포함합니다.
+# 공고의 근무지가 아래 목록 중 하나와 일치하면 포함됩니다.
+# 대소문자 무시. 비워두면 (locations: []) 모든 근무지 포함.
 locations:
   - "United Kingdom"
   - "London"
-  # - "Geneva"       # 추가 예시
-  # - "New York"     # 추가 예시
-  # - "Nairobi"      # 추가 예시
+  - "UK"
+  # - "Geneva"     # 추가 예시
+  # - "New York"   # 추가 예시
 
 
 # ── 카테고리 필터 ────────────────────────────────────────────
-# 포함할 카테고리. 비워두면 모든 카테고리를 포함합니다.
-# 예: ["Internship", "Professional", "Consultant"]
+# 비워두면 모든 카테고리 포함
 categories: []
 
 
 # ── 마감일 필터 ──────────────────────────────────────────────
-# 오늘로부터 몇 일 이내 마감인 공고만 포함합니다.
-# 0 으로 설정하면 마감일 필터를 사용하지 않습니다.
+# 오늘로부터 N일 이내 마감 공고만 포함. 0이면 필터 없음.
 deadline_within_days: 60
 
 
 # ── 출력 설정 ────────────────────────────────────────────────
 output:
-  filename_prefix: "jobs"          # 저장 파일명: jobs_YYYY-MM-DD.html
-  keep_last_days: 30               # 최근 30일치 HTML만 보관 (오래된 파일 자동 삭제)
-  timezone: "Asia/Seoul"           # 날짜/시간 표시 기준 타임존
+  filename_prefix: "jobs"
+  keep_last_days: 30
+  timezone: "Asia/Seoul"
 
 
 # ── 알림 설정 ────────────────────────────────────────────────
 notifications:
-  # Gmail 알림 (GitHub Secret에 GMAIL_USER, GMAIL_APP_PASSWORD 등록 필요)
   email:
     enabled: false
     to: "your@email.com"
-
-  # Slack 웹훅 알림 (GitHub Secret에 SLACK_WEBHOOK_URL 등록 필요)
   slack:
     enabled: false
-    mention_on_new: true           # 새 공고 발견 시 @channel 멘션
+    mention_on_new: true
