@@ -81,6 +81,8 @@ sites:
     crawler: "reliefweb_eu"
     region: "EU"
     enabled: true
+    manual_check: true
+    manual_reason: "GitHub Actions IP가 간헐적으로 차단됨 — 수동 확인 권장"
     note: "UN OCHA 공개 API — 유럽 소재 포지션 필터"
 
   - name: "EPSO (EU Careers)"
@@ -88,6 +90,8 @@ sites:
     crawler: "epso"
     region: "EU"
     enabled: false
+    manual_check: true
+    manual_reason: "AWS WAF 봇 차단으로 자동 수집 불가 — 직접 방문 필요"
     note: "AWS WAF 봇 차단으로 크롤링 불가 (2026.06 확인)"
 
   - name: "EU Traineeship (Blue Book)"
@@ -102,6 +106,8 @@ sites:
     crawler: "osce_jobs"
     region: "EU"
     enabled: true
+    manual_check: true
+    manual_reason: "GitHub Actions IP가 간헐적으로 차단됨 — 수동 확인 권장"
     note: "유럽안보협력기구. 57개국, 한국 포함 비EU 지원 가능"
 
   - name: "OECD Careers"
@@ -109,6 +115,8 @@ sites:
     crawler: "oecd_careers"
     region: "EU"
     enabled: false
+    manual_check: true
+    manual_reason: "403 Forbidden — 자동화 차단으로 직접 방문 필요"
     note: "403 Forbidden 자동화 차단으로 크롤링 불가 (2026.06 확인)"
 
   - name: "Impactpool"

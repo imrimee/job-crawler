@@ -141,6 +141,19 @@
   .archive-link:hover { background:rgba(255,255,255,.1); color:#fff; }
   .archive-link.current { background:rgba(0,158,219,.2); color:#7ecff5; border-color:rgba(0,158,219,.4); }
 
+  /* Manual check section */
+  .manual-check { max-width:1100px; margin:0 auto 32px; padding:0 40px; }
+  .manual-check-title { font-size:12px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:rgba(255,167,38,.8); margin-bottom:12px; display:flex; align-items:center; gap:8px; }
+  .manual-check-title::after { content:''; flex:1; height:1px; background:rgba(255,167,38,.2); }
+  .manual-check-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:10px; }
+  .manual-card { background:rgba(255,167,38,.05); border:1px solid rgba(255,167,38,.2); border-radius:8px; padding:14px 16px; display:flex; flex-direction:column; gap:6px; }
+  .manual-card-name { font-size:13px; font-weight:600; color:rgba(255,255,255,.85); }
+  .manual-card-reason { font-size:11px; color:rgba(255,167,38,.7); line-height:1.5; }
+  .manual-card-link { font-size:11px; color:var(--blue); text-decoration:none; margin-top:2px; }
+  .manual-card-link:hover { text-decoration:underline; }
+  .manual-badge-blocked { font-size:9px; font-weight:700; letter-spacing:1px; text-transform:uppercase; padding:2px 7px; border-radius:6px; background:rgba(220,38,38,.2); color:#f87171; display:inline-block; }
+  .manual-badge-intermittent { font-size:9px; font-weight:700; letter-spacing:1px; text-transform:uppercase; padding:2px 7px; border-radius:6px; background:rgba(255,167,38,.2); color:#fbbf24; display:inline-block; }
+
   /* Footer */
   footer { border-top:1px solid var(--border); padding:28px 40px; text-align:center; }
   .foot-note { font-size:11px; color:rgba(255,255,255,.2); letter-spacing:.5px; }
@@ -294,6 +307,27 @@
 
 {% endif %}
 </main>
+
+<!-- MANUAL CHECK SITES -->
+{% if manual_sites %}
+<div class="manual-check">
+  <div class="manual-check-title">⚠️ 수동 확인 필요 사이트</div>
+  <div class="manual-check-grid">
+    {% for site in manual_sites %}
+    <div class="manual-card">
+      <div class="manual-card-name">{{ site.name }}</div>
+      {% if not site.enabled %}
+      <span class="manual-badge-blocked">자동수집 불가</span>
+      {% else %}
+      <span class="manual-badge-intermittent">간헐적 차단</span>
+      {% endif %}
+      <div class="manual-card-reason">{{ site.manual_reason }}</div>
+      <a class="manual-card-link" href="{{ site.url }}" target="_blank">직접 방문 →</a>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
 
 <!-- ARCHIVE NAV -->
 {% if archive_files %}

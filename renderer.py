@@ -63,6 +63,13 @@ def render_html(
     )
     archive_files = [os.path.basename(f) for f in all_files]
 
+    # 수동 확인 필요 사이트 추출
+    all_sites = conditions.get("sites", [])
+    manual_sites = [
+        s for s in all_sites
+        if s.get("manual_check", False)
+    ]
+
     # Jinja2 렌더링
     env = Environment(loader=FileSystemLoader(template_dir), autoescape=True)
     tmpl = env.get_template("jobs.html.j2")
@@ -78,6 +85,7 @@ def render_html(
         keywords=conditions.get("keywords", []),
         locations=conditions.get("locations", []),
         site_configs=site_configs,
+        manual_sites=manual_sites,
         archive_files=archive_files,
         current_file=filename,
     )
