@@ -3,5 +3,7 @@ __pycache__/
 .env
 .seen_jobs.json
 venv/
-*.html
+europe_job_sites.html
+kr_job_sites.html
+uk_job_sites.html
 .DS_Store

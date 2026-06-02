@@ -45,6 +45,23 @@ def mark_as_seen(jobs: list[Job], cache_file: str = ".seen_jobs.json"):
     save_seen_ids(seen, cache_file)
 
 
+HTML_SEEN_FILE = ".seen_jobs_html.json"
+
+
+def get_new_jobs_html(jobs: list[Job]) -> list[Job]:
+    """HTML 리포트 기준으로 이전에 표시된 적 없는 새 공고만 반환합니다."""
+    seen = load_seen_ids(HTML_SEEN_FILE)
+    return [j for j in jobs if f"{j.source_site}:{j.job_id}" not in seen]
+
+
+def mark_as_seen_html(jobs: list[Job]):
+    """HTML 리포트에 표시된 공고를 기록합니다."""
+    seen = load_seen_ids(HTML_SEEN_FILE)
+    for job in jobs:
+        seen.add(f"{job.source_site}:{job.job_id}")
+    save_seen_ids(seen, HTML_SEEN_FILE)
+
+
 def notify(jobs: list[Job], new_jobs: list[Job], conditions: dict, html_path: str):
     """설정에 따라 이메일 또는 Slack 알림을 발송합니다."""
     cfg = conditions.get("notifications", {})

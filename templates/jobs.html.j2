@@ -133,6 +133,59 @@
   /* No results */
   .empty { text-align:center; padding:60px 20px; color:var(--muted); font-size:14px; }
 
+  /* ── NEW JOBS SECTION ───────────────────────────── */
+  .new-section {
+    background: linear-gradient(135deg, rgba(0,158,219,.06) 0%, rgba(201,168,76,.06) 100%);
+    border: 1px solid rgba(201,168,76,.2);
+    border-radius: 12px;
+    padding: 28px 32px;
+    margin-bottom: 40px;
+  }
+  .new-section-hdr {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 20px;
+  }
+  .new-badge {
+    background: var(--gold); color: var(--bg);
+    font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
+    text-transform: uppercase; padding: 4px 10px; border-radius: 6px;
+    flex-shrink: 0;
+  }
+  .new-section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px; font-weight: 700; color: var(--gold);
+  }
+  .new-section-count { font-size: 12px; color: var(--muted); }
+  .new-empty {
+    text-align: center; padding: 32px 20px;
+    color: var(--muted); font-size: 13px;
+  }
+
+  /* ── ALL JOBS TOGGLE SECTION ────────────────────── */
+  .all-section { margin-top: 8px; }
+  .all-toggle-btn {
+    display: flex; align-items: center; gap: 10px;
+    width: 100%; background: none; border: 1px solid var(--border);
+    border-radius: 8px; padding: 14px 20px; cursor: pointer;
+    color: rgba(255,255,255,.6); font-family: 'DM Sans', sans-serif;
+    font-size: 13px; font-weight: 500; letter-spacing: .3px;
+    transition: all .2s; margin-bottom: 0;
+  }
+  .all-toggle-btn:hover { background: rgba(255,255,255,.04); color: #fff; }
+  .all-toggle-btn .toggle-icon { font-size: 16px; transition: transform .3s; }
+  .all-toggle-btn.open .toggle-icon { transform: rotate(180deg); }
+  .all-toggle-btn .toggle-count { font-size: 11px; color: var(--muted); margin-left: auto; }
+  .all-jobs-body { display: none; margin-top: 20px; }
+  .all-jobs-body.open { display: block; }
+
+  /* NEW badge on card */
+  .card-new-badge {
+    position: absolute; top: 14px; right: 14px;
+    background: var(--gold); color: var(--bg);
+    font-size: 9px; font-weight: 700; letter-spacing: 1.5px;
+    text-transform: uppercase; padding: 2px 8px; border-radius: 4px;
+  }
+
   /* Archive nav */
   .archive { max-width:1100px; margin:0 auto; padding:0 40px 48px; }
   .archive h3 { font-size:13px; color:var(--muted); letter-spacing:1.5px; text-transform:uppercase; margin-bottom:12px; }
@@ -181,7 +234,9 @@
       수집 시각: {{ run_time }}
     </p>
     <div class="stats">
-      <div class="stat"><span class="stat-n">{{ total_count }}</span><span class="stat-l">Total</span></div>
+      <div class="stat"><span class="stat-n" style="color:var(--gold)">{{ new_count }}</span><span class="stat-l">🆕 신규</span></div>
+      <div class="vline"></div>
+      <div class="stat"><span class="stat-n">{{ total_count }}</span><span class="stat-l">전체</span></div>
       <div class="vline"></div>
       {% for site, cnt in site_counts.items() %}
       <div class="stat"><span class="stat-n">{{ cnt }}</span><span class="stat-l">{{ site }}</span></div>
@@ -234,76 +289,89 @@
   </div>
 {% else %}
 
-  {% for category, jobs in grouped_jobs.items() %}
-  {% set cat_key = "intern" if "인턴" in category else ("pro" if "전문" in category else ("consultant" if "컨설" in category else "other")) %}
-
-  <div class="sec-hdr">
-    <div class="sec-dot" style="background:var(--{{ cat_key if cat_key != 'pro' else 'pro' }})"></div>
-    <h2 class="sec-title">{{ category }}</h2>
-    <span class="sec-count">· {{ jobs | length }}개 공고</span>
-    <div class="sec-line"></div>
-  </div>
-
-  <div class="grid" data-category="{{ cat_key }}">
-  {% for job in jobs %}
+  {# ── 매크로: 공고 카드 렌더링 ── #}
+  {% macro job_card(job, cat_key) %}
   {% set days_left = job.days_left %}
   {% set urgency = "urgent" if days_left is not none and days_left <= 7 else ("soon" if days_left is not none and days_left <= 21 else "ok") %}
-
   <div class="card" data-site="{{ job.source_site | lower | replace(' ','_') }}" data-cat="{{ cat_key }}">
     <div class="card-bar {{ cat_key }}"></div>
-
+    {% if job.is_new %}<div class="card-new-badge">NEW</div>{% endif %}
     <div class="card-top">
       <span class="badge {{ cat_key }}">{{ job.category or cat_key }}</span>
       <span class="card-id">#{{ job.job_id }}</span>
     </div>
-
     <div>
       <div class="card-title">{{ job.title }}</div>
       <div class="card-source">{{ job.source_site }}</div>
     </div>
-
     <div class="meta">
-      <div class="meta-row">
-        <span class="meta-icon">🏛️</span>
-        <span class="meta-text"><strong>{{ job.organization }}</strong></span>
-      </div>
-      <div class="meta-row">
-        <span class="meta-icon">📍</span>
-        <span class="meta-text">{{ job.location }}</span>
-      </div>
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>{{ job.organization }}</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">{{ job.location }}</span></div>
       {% if job.date_posted %}
-      <div class="meta-row">
-        <span class="meta-icon">📅</span>
-        <span class="meta-text">게시일: {{ job.date_posted }}</span>
-      </div>
+      <div class="meta-row"><span class="meta-icon">📅</span><span class="meta-text">게시일: {{ job.date_posted }}</span></div>
       {% endif %}
     </div>
-
     {% if job.keywords_matched %}
-    <div class="kw-pills">
-      {% for kw in job.keywords_matched %}
-      <span class="kw-pill">{{ kw }}</span>
-      {% endfor %}
-    </div>
+    <div class="kw-pills">{% for kw in job.keywords_matched %}<span class="kw-pill">{{ kw }}</span>{% endfor %}</div>
     {% endif %}
-
     <div class="card-footer">
-      <div class="deadline {{ urgency }}">
-        마감
-        <span class="date">
-          {{ job.deadline or "미정" }}
-          {% if days_left is not none %}
-            (D-{{ days_left }})
-          {% endif %}
-        </span>
-      </div>
+      <div class="deadline {{ urgency }}">마감 <span class="date">{{ job.deadline or "미정" }}{% if days_left is not none %} (D-{{ days_left }}){% endif %}</span></div>
       <a class="view-btn" href="{{ job.url }}" target="_blank">지원하기 →</a>
     </div>
   </div>
+  {% endmacro %}
 
-  {% endfor %}
-  </div><!-- /grid -->
-  {% endfor %}
+  {# ── 🆕 신규 공고 섹션 ── #}
+  <div class="new-section">
+    <div class="new-section-hdr">
+      <span class="new-badge">🆕 NEW</span>
+      <span class="new-section-title">오늘 새로 등록된 공고</span>
+      <span class="new-section-count">· {{ new_count }}개</span>
+    </div>
+
+    {% if new_count == 0 %}
+    <div class="new-empty">
+      <p>오늘은 새로 등록된 공고가 없습니다.</p>
+      <p style="margin-top:6px;font-size:12px;color:rgba(255,255,255,.3)">전체 공고는 아래 섹션에서 확인하세요.</p>
+    </div>
+    {% else %}
+      {% for category, jobs in grouped_new.items() %}
+      {% set cat_key = "intern" if "인턴" in category else ("pro" if "전문" in category else ("consultant" if "컨설" in category else "other")) %}
+      <div class="sec-hdr" style="margin-top:20px;">
+        <div class="sec-dot" style="background:var(--gold)"></div>
+        <h2 class="sec-title" style="color:var(--gold)">{{ category }}</h2>
+        <span class="sec-count">· {{ jobs | length }}개</span>
+        <div class="sec-line"></div>
+      </div>
+      <div class="grid">
+        {% for job in jobs %}{{ job_card(job, cat_key) }}{% endfor %}
+      </div>
+      {% endfor %}
+    {% endif %}
+  </div>
+
+  {# ── 📋 전체 공고 섹션 (접기/펼치기) ── #}
+  <div class="all-section">
+    <button class="all-toggle-btn" onclick="toggleAll(this)" id="all-toggle">
+      <span class="toggle-icon">▼</span>
+      <span>📋 전체 공고 보기</span>
+      <span class="toggle-count">{{ total_count }}개 전체</span>
+    </button>
+    <div class="all-jobs-body" id="all-jobs-body">
+      {% for category, jobs in grouped_jobs.items() %}
+      {% set cat_key = "intern" if "인턴" in category else ("pro" if "전문" in category else ("consultant" if "컨설" in category else "other")) %}
+      <div class="sec-hdr">
+        <div class="sec-dot" style="background:var(--{{ cat_key if cat_key != 'pro' else 'pro' }})"></div>
+        <h2 class="sec-title">{{ category }}</h2>
+        <span class="sec-count">· {{ jobs | length }}개 공고</span>
+        <div class="sec-line"></div>
+      </div>
+      <div class="grid" data-category="{{ cat_key }}">
+        {% for job in jobs %}{{ job_card(job, cat_key) }}{% endfor %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
 
 {% endif %}
 </main>
@@ -354,6 +422,13 @@
 </footer>
 
 <script>
+function toggleAll(btn) {
+  const body = document.getElementById('all-jobs-body');
+  const isOpen = body.classList.toggle('open');
+  btn.classList.toggle('open', isOpen);
+  btn.querySelector('span:nth-child(2)').textContent = isOpen ? '📋 전체 공고 접기' : '📋 전체 공고 보기';
+}
+
 function filterBy(type, btn) {
   document.querySelectorAll('.f-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');

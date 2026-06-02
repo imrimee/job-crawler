@@ -17,7 +17,7 @@ from crawlers.base import Job
 from crawlers import CRAWLER_REGISTRY
 from aggregator import filter_jobs, deduplicate, sort_jobs
 from renderer import render_html, cleanup_old_files
-from notifier import get_new_jobs, mark_as_seen, notify
+from notifier import get_new_jobs, mark_as_seen, notify, get_new_jobs_html, mark_as_seen_html
 
 import yaml
 
@@ -83,7 +83,12 @@ def run(dry_run=False, no_notify=False, region_filter=None, kw_test=False):
     filtered = sort_jobs(filtered)
     print(f"   필터링 후: {len(filtered)}개")
 
-    # ── 4. HTML 렌더링 ───────────────────────────────────────
+    # ── 4. 신규 공고 판별 ────────────────────────────────────
+    new_jobs_html = get_new_jobs_html(filtered)
+    new_job_ids   = {f"{j.source_site}:{j.job_id}" for j in new_jobs_html}
+    print(f"\n🆕 신규 공고 (HTML 기준): {len(new_jobs_html)}개")
+
+    # ── 5. HTML 렌더링 ───────────────────────────────────────
     print("\n📄 HTML 렌더링 중...")
     active_sites = [s for s in sites if s.get("enabled", True)]
     if region_filter:
@@ -95,8 +100,12 @@ def run(dry_run=False, no_notify=False, region_filter=None, kw_test=False):
         conditions=conditions,
         site_configs=active_sites,
         output_dir=output_dir,
+        new_job_ids=new_job_ids,
     )
     print(f"   ✅ 저장 완료: {html_path}")
+
+    # HTML 열람 이력 업데이트
+    mark_as_seen_html(filtered)
 
     keep_days = output_cfg.get("keep_last_days", 30)
     prefix    = output_cfg.get("filename_prefix", "jobs")

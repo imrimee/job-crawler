@@ -26,6 +26,7 @@ class Job:
     source_site: str = ""                   # 출처 사이트명
     deadline_dt: Optional[datetime] = None  # 마감일 (datetime, 정렬용)
     keywords_matched: list = field(default_factory=list)  # 매칭된 키워드
+    is_new: bool = False                                   # HTML 기준 신규 여부 (renderer에서 설정)
 
 
 class BaseCrawler(ABC):

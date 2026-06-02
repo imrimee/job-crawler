@@ -21,6 +21,7 @@ def render_html(
     site_configs: list[dict],
     output_dir: str = "docs",
     template_dir: str = "templates",
+    new_job_ids: set[str] | None = None,
 ) -> str:
     """
     수집된 공고를 HTML로 렌더링하고 파일 경로를 반환합니다.
@@ -37,6 +38,9 @@ def render_html(
     filename = f"{prefix}_{file_date}.html"
     filepath = os.path.join(output_dir, filename)
 
+    if new_job_ids is None:
+        new_job_ids = set()
+
     # Job에 days_left 속성 추가
     today = now.replace(tzinfo=None)
     for job in jobs:
@@ -46,8 +50,14 @@ def render_html(
         else:
             job.days_left = None
 
+    # Job에 is_new 속성 추가
+    for job in jobs:
+        job.is_new = f"{job.source_site}:{job.job_id}" in new_job_ids
+
     # 그룹화
     grouped = group_by_category(jobs)
+    new_jobs_list = [j for j in jobs if j.is_new]
+    grouped_new   = group_by_category(new_jobs_list)
 
     # 통계
     site_counts = {}
@@ -78,10 +88,12 @@ def render_html(
         run_date=run_date,
         run_time=run_time,
         total_count=len(jobs),
+        new_count=len(new_jobs_list),
         sites=list(site_counts.keys()),
         site_counts=site_counts,
         category_counts=category_counts,
         grouped_jobs=grouped,
+        grouped_new=grouped_new,
         keywords=conditions.get("keywords", []),
         locations=conditions.get("locations", []),
         site_configs=site_configs,
