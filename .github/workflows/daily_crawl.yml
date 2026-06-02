@@ -23,6 +23,7 @@ on:
 jobs:
   crawl:
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     permissions:
       contents: write           # docs/ 폴더를 저장소에 커밋하기 위해 필요
 
