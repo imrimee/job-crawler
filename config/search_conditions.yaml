@@ -87,8 +87,8 @@ sites:
     url: "https://eu-careers.europa.eu/en/search"
     crawler: "epso"
     region: "EU"
-    enabled: true
-    note: "EU 공식 인사선발처. AD급·CAST·Blue Book 스테이지"
+    enabled: false
+    note: "AWS WAF 봇 차단으로 크롤링 불가 (2026.06 확인)"
 
   - name: "EU Traineeship (Blue Book)"
     url: "https://traineeships.ec.europa.eu"
@@ -108,8 +108,8 @@ sites:
     url: "https://www.oecd.org/en/about/jobs.html"
     crawler: "oecd_careers"
     region: "EU"
-    enabled: true
-    note: "OECD 파리 본부. 한국 회원국, 한국인 지원 가능"
+    enabled: false
+    note: "403 Forbidden 자동화 차단으로 크롤링 불가 (2026.06 확인)"
 
   - name: "Impactpool"
     url: "https://www.impactpool.org/jobs"
