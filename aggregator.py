@@ -1,6 +1,7 @@
 """
 aggregator.py
-모든 크롤러의 결과를 병합하고 search_conditions.yaml의 조건에 맞게 필터링합니다.
+모든 크롤러의 결과를 병합하고 조건에 맞게 필터링합니다.
+UK 사이트와 KR 사이트의 근무지/키워드 필터를 각각 적용합니다.
 """
 
 from datetime import datetime, timedelta
@@ -8,43 +9,64 @@ from crawlers.base import Job
 
 
 def filter_jobs(jobs: list[Job], conditions: dict) -> list[Job]:
-    """수집된 전체 공고를 조건에 맞게 필터링합니다."""
-    keywords   = [k.lower() for k in conditions.get("keywords", [])]
-    locations  = [l.lower() for l in conditions.get("locations", [])]
-    categories = [c.lower() for c in conditions.get("categories", [])]
-    max_days   = conditions.get("deadline_within_days", 0)
+    """지역(region)별로 적절한 키워드·근무지 필터를 적용합니다."""
+
+    # ── 공통 설정 ──────────────────────────────────────────
+    en_keywords  = [k.lower() for k in conditions.get("keywords",    [])]
+    kr_keywords  = [k.lower() for k in conditions.get("keywords_kr", [])]
+    all_keywords = en_keywords + kr_keywords
+
+    uk_locations = [l.lower() for l in conditions.get("locations",    [])]
+    kr_locations = [l.lower() for l in conditions.get("locations_kr", [])]
+
+    categories   = [c.lower() for c in conditions.get("categories",   [])]
+    max_days     = conditions.get("deadline_within_days", 0)
+
+    # 사이트→지역 매핑 (site_config에서 region 읽기)
+    site_region: dict[str, str] = {}
+    for s in conditions.get("sites", []):
+        site_region[s.get("name", "")] = s.get("region", "UK").upper()
 
     filtered = []
     for job in jobs:
-        # ── 1. 키워드 필터 ──────────────────────────────────
-        # 직위명 또는 설명에 키워드 중 하나 이상이 포함되어야 합니다.
-        if keywords:
-            searchable = (job.title + " " + job.description).lower()
-            matched = [kw for kw in keywords if kw in searchable]
+        region = site_region.get(job.source_site, "UK").upper()
+
+        # ── 1. 키워드 필터 ──────────────────────────────
+        searchable = (job.title + " " + job.description).lower()
+        if region == "KR":
+            kw_pool = all_keywords   # KR: 영어+한국어
+        else:
+            kw_pool = en_keywords    # UK: 영어만
+
+        if kw_pool:
+            matched = [kw for kw in kw_pool if kw in searchable]
             if not matched:
                 continue
             job.keywords_matched = list(set(job.keywords_matched + matched))
 
-        # ── 2. 근무지 필터 ─────────────────────────────────
-        # locations 목록이 비어 있으면 모든 근무지를 허용합니다.
-        if locations:
+        # ── 2. 근무지 필터 ─────────────────────────────
+        if region == "KR":
+            loc_pool = kr_locations
+        else:
+            loc_pool = uk_locations
+
+        if loc_pool:
             job_loc = job.location.lower()
-            if not any(loc in job_loc for loc in locations):
+            if not any(loc in job_loc for loc in loc_pool):
                 continue
 
-        # ── 3. 카테고리 필터 ───────────────────────────────
+        # ── 3. 카테고리 필터 ───────────────────────────
         if categories:
-            job_cat = job.category.lower()
-            if not any(cat in job_cat for cat in categories):
+            if not any(cat in job.category.lower() for cat in categories):
                 continue
 
-        # ── 4. 마감일 필터 ─────────────────────────────────
+        # ── 4. 마감일 필터 ─────────────────────────────
         if max_days and job.deadline_dt:
             cutoff = datetime.now() + timedelta(days=max_days)
             if job.deadline_dt < datetime.now():
-                continue   # 이미 마감된 공고 제외
+                continue
             if job.deadline_dt > cutoff:
-                continue   # 너무 먼 미래 공고 제외
+                continue
 
         filtered.append(job)
 
@@ -52,7 +74,6 @@ def filter_jobs(jobs: list[Job], conditions: dict) -> list[Job]:
 
 
 def deduplicate(jobs: list[Job]) -> list[Job]:
-    """여러 사이트에서 동일 공고가 수집된 경우 중복을 제거합니다."""
     seen = set()
     result = []
     for job in jobs:
@@ -64,40 +85,43 @@ def deduplicate(jobs: list[Job]) -> list[Job]:
 
 
 def sort_jobs(jobs: list[Job]) -> list[Job]:
-    """마감일 오름차순 정렬. 마감일 없는 공고는 맨 뒤로."""
     return sorted(
         jobs,
         key=lambda j: (j.deadline_dt or datetime(9999, 12, 31), j.title)
     )
 
 
-def group_by_site(jobs: list[Job]) -> dict[str, list[Job]]:
-    """사이트별로 공고를 묶습니다. HTML 렌더링에 사용됩니다."""
-    groups: dict[str, list[Job]] = {}
+def group_by_region(jobs: list[Job], site_configs: list[dict]) -> dict[str, list[Job]]:
+    """영국/한국별로 분류합니다. HTML 렌더링에 사용됩니다."""
+    site_region = {s["name"]: s.get("region", "UK") for s in site_configs}
+    groups: dict[str, list[Job]] = {"🇬🇧 영국 (UK)": [], "🇰🇷 한국 (KR)": []}
     for job in jobs:
-        groups.setdefault(job.source_site, []).append(job)
-    return groups
+        region = site_region.get(job.source_site, "UK").upper()
+        if region == "KR":
+            groups["🇰🇷 한국 (KR)"].append(job)
+        else:
+            groups["🇬🇧 영국 (UK)"].append(job)
+    return {k: v for k, v in groups.items() if v}
 
 
 def group_by_category(jobs: list[Job]) -> dict[str, list[Job]]:
-    """카테고리별로 공고를 묶습니다."""
-    # 카테고리를 3가지 버킷으로 단순화
     groups: dict[str, list[Job]] = {
-        "인턴십": [],
-        "전문직 (P급)": [],
-        "컨설턴트": [],
-        "기타": [],
+        "인턴십": [], "전문직 (P급)": [],
+        "컨설턴트": [], "공공기관 / 정부": [],
+        "NGO / 시민사회": [], "기타": [],
     }
     for job in jobs:
         cat = job.category.lower()
-        if "intern" in cat:
+        if "intern" in cat or "인턴" in cat:
             groups["인턴십"].append(job)
-        elif any(x in cat for x in ["p-1","p-2","p-3","p-4","p-5","p-6","p-7"]):
+        elif any(x in cat for x in ["p-1","p-2","p-3","p-4","p-5"]):
             groups["전문직 (P급)"].append(job)
         elif "consult" in cat or "con" == cat.strip():
             groups["컨설턴트"].append(job)
+        elif any(x in cat for x in ["공공", "정부", "공무원", "civil", "government", "public"]):
+            groups["공공기관 / 정부"].append(job)
+        elif any(x in cat for x in ["ngo", "시민", "비영리", "nonprofit", "charity"]):
+            groups["NGO / 시민사회"].append(job)
         else:
             groups["기타"].append(job)
-
-    # 비어 있는 그룹 제거
     return {k: v for k, v in groups.items() if v}

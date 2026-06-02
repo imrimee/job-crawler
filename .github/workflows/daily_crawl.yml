@@ -19,11 +19,20 @@ on:
         description: 'Dry run (더미 데이터로 테스트)'
         type: boolean
         default: false
+      region:
+        description: '크롤링 지역 필터 (ALL=전체, UK=영국만, KR=한국만)'
+        type: choice
+        options: ['ALL', 'UK', 'KR']
+        default: 'ALL'
+      kw_test:
+        description: '한국어 키워드 테스트 모드 (결과 수 비교만 출력)'
+        type: boolean
+        default: false
 
 jobs:
   crawl:
     runs-on: ubuntu-22.04
-    timeout-minutes: 60
+    timeout-minutes: 90
     permissions:
       contents: write           # docs/ 폴더를 저장소에 커밋하기 위해 필요
 
@@ -52,11 +61,17 @@ jobs:
           GMAIL_APP_PASSWORD:   ${{ secrets.GMAIL_APP_PASSWORD }}
           SLACK_WEBHOOK_URL:    ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
+          ARGS=""
           if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
-            python main.py --dry-run
-          else
-            python main.py
+            ARGS="$ARGS --dry-run"
           fi
+          if [ "${{ github.event.inputs.region }}" != "" ] && [ "${{ github.event.inputs.region }}" != "ALL" ]; then
+            ARGS="$ARGS --region ${{ github.event.inputs.region }}"
+          fi
+          if [ "${{ github.event.inputs.kw_test }}" = "true" ]; then
+            ARGS="$ARGS --kw-test"
+          fi
+          python main.py $ARGS
 
       # ── 5. 결과 HTML을 저장소에 커밋 ────────────────────
       - name: Commit output HTML

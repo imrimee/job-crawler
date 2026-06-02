@@ -1,98 +1,199 @@
 # ============================================================
-#  Job Crawler — 검색 조건 설정 파일
+#  Job Crawler — 검색 조건 설정 파일  (UK + KR 통합)
 #  이 파일만 수정하면 크롤링 대상/조건/근무지를 바꿀 수 있습니다.
 # ============================================================
 
-# ── 크롤링 대상 사이트 ──────────────────────────────────────
-# enabled: false 로 설정하면 해당 사이트는 건너뜁니다.
+
+# ╔══════════════════════════════════════════════════════╗
+# ║              🇬🇧  영국(UK) 사이트                     ║
+# ╚══════════════════════════════════════════════════════╝
 sites:
+
   - name: "UN Careers"
     url: "https://careers.un.org"
     crawler: "un_careers"
+    region: "UK"
     enabled: true
 
   - name: "ReliefWeb"
     url: "https://reliefweb.int/jobs"
     crawler: "reliefweb"
+    region: "UK"
     enabled: true
-    note: "UN OCHA 운영, 공개 API 사용 — 빠르고 안정적"
+    note: "UN OCHA 공개 API 사용 — 빠르고 안정적"
 
   - name: "Jobs.ac.uk"
     url: "https://www.jobs.ac.uk"
     crawler: "jobs_ac_uk"
+    region: "UK"
     enabled: true
     note: "영국 학술·연구기관 채용 1위"
 
   - name: "Guardian Jobs"
     url: "https://jobs.theguardian.com"
     crawler: "guardian_jobs"
+    region: "UK"
     enabled: true
     note: "NGO·싱크탱크·공공정책 특화"
 
   - name: "Prospects.ac.uk"
     url: "https://www.prospects.ac.uk"
     crawler: "prospects"
+    region: "UK"
     enabled: true
     note: "영국 대졸자 1위 취업 포털"
 
   - name: "Idealist"
     url: "https://www.idealist.org"
     crawler: "idealist"
+    region: "UK"
     enabled: true
     note: "NGO·비영리 인턴십 특화"
 
   - name: "DevelopmentAid"
     url: "https://www.developmentaid.org/jobs"
     crawler: "development_aid"
+    region: "UK"
     enabled: true
-    note: "국제개발·ODA 분야 전문 (무료 공고만 수집)"
+    note: "국제개발·ODA 전문 (무료 공고만 수집)"
 
   - name: "Civil Service Jobs"
     url: "https://www.civilservicejobs.service.gov.uk"
     crawler: "civil_service_jobs"
+    region: "UK"
     enabled: true
-    note: "영국 정부 공식 채용 포털. 일부 포지션 비자 제한 있음"
+    note: "영국 정부 공식 채용. 일부 비자 제한"
 
   - name: "W4MP"
     url: "https://www.w4mp.org"
     crawler: "w4mp"
+    region: "UK"
     enabled: true
     note: "영국 의회·Westminster 특화"
 
-  # ── 제외된 사이트 (이유 기재) ─────────────────────────────
+
+# ╔══════════════════════════════════════════════════════╗
+# ║              🇰🇷  한국(KR) 사이트                     ║
+# ╚══════════════════════════════════════════════════════╝
+
+  - name: "KOICA"
+    url: "https://recruit.koica.go.kr"
+    crawler: "koica"
+    region: "KR"
+    enabled: true
+    note: "한국국제협력단 공식 채용 포털. ODA·개발협력"
+
+  - name: "국제기구채용정보센터(MOFA)"
+    url: "https://www.unrecruit.mofa.go.kr"
+    crawler: "mofa_unrecruit"
+    region: "KR"
+    enabled: true
+    note: "외교부 운영. UN·전문기구 채용공고 한국어 요약 제공"
+
+  - name: "나라일터"
+    url: "https://www.gojobs.go.kr"
+    crawler: "gojobs"
+    region: "KR"
+    enabled: true
+    note: "인사혁신처 운영 공무원 채용 포털. 외교부·통일부 특채"
+
+  - name: "알리오(ALIO)"
+    url: "https://www.alio.go.kr"
+    crawler: "alio"
+    region: "KR"
+    enabled: true
+    note: "기획재정부 운영. KOICA·KF·KIEP 등 공공기관 통합 채용"
+
+  - name: "잡코리아"
+    url: "https://www.jobkorea.co.kr"
+    crawler: "jobkorea"
+    region: "KR"
+    enabled: true
+    note: "국내 최대 민간 취업 포털. 외국계·NGO·공공기관 공고"
+
+  - name: "사람인"
+    url: "https://www.saramin.co.kr"
+    crawler: "saramin"
+    region: "KR"
+    enabled: true
+    note: "국내 2위 종합 취업 포털. 잡코리아와 병행 탐색"
+
+  - name: "원티드"
+    url: "https://www.wanted.co.kr"
+    crawler: "wanted_kr"
+    region: "KR"
+    enabled: true
+    note: "스타트업·글로벌 기업 특화. 공개 API 사용"
+
+  - name: "글로벌청년취업드림"
+    url: "https://www.worldjob.or.kr"
+    crawler: "worldjob"
+    region: "KR"
+    enabled: true
+    note: "한국산업인력공단 운영. K-Move·해외 인턴십 지원금 정보"
+
+  - name: "인크루트"
+    url: "https://www.incruit.com"
+    crawler: "incruit"
+    region: "KR"
+    enabled: true
+    note: "외국계 기업·공공기관 인턴 특화"
+
+  - name: "NGO잡스"
+    url: "https://www.ngo.or.kr"
+    crawler: "ngo_kr"
+    region: "KR"
+    enabled: true
+    note: "한국NGO협의회 운영. 국내 NGO·시민사회 특화"
+
+
+  # ── 제외 사이트 (이유 기재) ────────────────────────────────
   # - name: "LinkedIn UK"
-  #   url: "https://www.linkedin.com/jobs"
   #   crawler: "linkedin"
   #   enabled: false
-  #   note: "❌ 제외 — 강력한 봇 차단 및 로그인 필수"
+  #   note: "❌ 제외 — 봇 차단 강력, 로그인 필수"
+
+  # - name: "LinkedIn Korea"
+  #   crawler: "linkedin_kr"
+  #   enabled: false
+  #   note: "❌ 제외 — 봇 차단 강력, 로그인 필수"
 
   # - name: "LSE Careers"
-  #   url: "https://careers.lse.ac.uk"
   #   crawler: "lse_careers"
   #   enabled: false
   #   note: "❌ 제외 — LSE 학생/동문 로그인 필수"
 
   # - name: "Devex"
-  #   url: "https://www.devex.com/jobs"
   #   crawler: "devex"
   #   enabled: false
-  #   note: "❌ 제외 — 전체 공고 유료 구독 필요"
+  #   note: "❌ 제외 — 전체 공고 유료"
 
-  # ── 나중에 추가할 사이트 예시 ─────────────────────────────
-  # - name: "Charity Job"
+
+# ── 나중에 추가할 사이트 예시 ─────────────────────────────────
+  # - name: "CharityJob"
   #   url: "https://www.charityjob.co.uk"
   #   crawler: "charity_job"
+  #   region: "UK"
   #   enabled: false
 
   # - name: "UNDP Jobs"
   #   url: "https://jobs.undp.org"
   #   crawler: "undp"
+  #   region: "UK"
+  #   enabled: false
+
+  # - name: "외교부 채용포털"
+  #   url: "https://www.mofa.go.kr"
+  #   crawler: "mofa"
+  #   region: "KR"
   #   enabled: false
 
 
-# ── 검색 키워드 ─────────────────────────────────────────────
-# 항목 중 하나라도 직위명/설명에 포함되면 결과에 포함됩니다.
-# 추가/삭제/수정 자유롭게 가능합니다.
+# ╔══════════════════════════════════════════════════════╗
+# ║              🔍  검색 키워드 설정                     ║
+# ╚══════════════════════════════════════════════════════╝
+
+# ── 영어 키워드 (UK 사이트 + KR 사이트 영문 검색 공통 사용) ──────
 keywords:
   - "political science"
   - "international relations"
@@ -104,37 +205,65 @@ keywords:
   - "policy analyst"
   - "research officer"
   - "humanitarian"
+  - "international development"
+  - "ODA"
 
 
-# ── 근무지 필터 ─────────────────────────────────────────────
-# 공고의 근무지가 아래 목록 중 하나와 일치하면 포함됩니다.
-# 대소문자 무시. 비워두면 (locations: []) 모든 근무지 포함.
+# ── 한국어 키워드 (KR 사이트 전용) ──────────────────────────────
+# 테스트 후 영어 키워드(B안)와 결과 수를 비교해 조정 예정
+keywords_kr:
+  - "국제협력"
+  - "국제개발"
+  - "정치외교"
+  - "공공정책"
+  - "외교부"
+  - "국제기구"
+  - "NGO"
+  - "정책연구"
+  - "사회과학"
+  - "ODA"
+  - "인턴"
+  - "해외취업"
+
+
+# ╔══════════════════════════════════════════════════════╗
+# ║              📍  근무지 필터 설정                     ║
+# ╚══════════════════════════════════════════════════════╝
+
+# ── 영국 근무지 (UK 사이트에 적용) ──────────────────────────────
 locations:
   - "United Kingdom"
   - "London"
   - "UK"
-  # - "Geneva"     # 추가 예시
-  # - "New York"   # 추가 예시
+  # - "Geneva"   # 추가 예시
+  # - "New York" # 추가 예시
+
+# ── 한국 근무지 (KR 사이트에 적용) ──────────────────────────────
+locations_kr:
+  - "Korea"
+  - "Seoul"
+  - "서울"
+  - "한국"
+  # 빈 목록이면 모든 근무지 포함
 
 
-# ── 카테고리 필터 ────────────────────────────────────────────
-# 비워두면 모든 카테고리 포함
+# ╔══════════════════════════════════════════════════════╗
+# ║              ⚙️   기타 설정                          ║
+# ╚══════════════════════════════════════════════════════╝
+
+# ── 카테고리 필터 (비워두면 전체) ────────────────────────────────
 categories: []
 
-
-# ── 마감일 필터 ──────────────────────────────────────────────
-# 오늘로부터 N일 이내 마감 공고만 포함. 0이면 필터 없음.
+# ── 마감일 필터 (0 = 필터 없음) ─────────────────────────────────
 deadline_within_days: 60
 
-
-# ── 출력 설정 ────────────────────────────────────────────────
+# ── 출력 설정 ────────────────────────────────────────────────────
 output:
   filename_prefix: "jobs"
   keep_last_days: 30
   timezone: "Asia/Seoul"
 
-
-# ── 알림 설정 ────────────────────────────────────────────────
+# ── 알림 설정 ────────────────────────────────────────────────────
 notifications:
   email:
     enabled: false
