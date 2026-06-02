@@ -8,7 +8,6 @@ OSCE(유럽안보협력기구) 공식 채용 포털.
 
 import re
 import urllib.request
-import urllib.parse
 from datetime import datetime
 from bs4 import BeautifulSoup
 from crawlers.base import BaseCrawler, Job
@@ -16,8 +15,7 @@ from crawlers.base import BaseCrawler, Job
 
 class OsceJobsCrawler(BaseCrawler):
 
-    BASE_URL = "https://jobs.osce.org"
-    SEARCH_URL = "https://jobs.osce.org/vacancies"
+    LIST_URL = "https://jobs.osce.org/vacancies"
 
     HEADERS = {
         "User-Agent": (
@@ -26,7 +24,6 @@ class OsceJobsCrawler(BaseCrawler):
             "Chrome/120.0.0.0 Safari/537.36"
         ),
         "Accept": "text/html,application/xhtml+xml",
-        "Accept-Language": "en-US,en;q=0.9",
     }
 
     def fetch_jobs(self) -> list[Job]:
@@ -35,99 +32,70 @@ class OsceJobsCrawler(BaseCrawler):
         seen_ids: set[str] = set()
 
         self.log("크롤링 시작")
-
-        for keyword in keywords:
-            self.log(f"검색 중: '{keyword}'")
-            jobs = self._search(keyword, seen_ids)
-            self.log(f"  → {len(jobs)}개 신규 공고 수집")
+        html = self._fetch(self.LIST_URL)
+        if html:
+            jobs = self._parse(html, keywords, seen_ids)
             all_jobs.extend(jobs)
+            self.log(f"  → {len(jobs)}개 공고 수집")
 
         self.log(f"크롤링 완료 — 총 {len(all_jobs)}개")
         return all_jobs
 
-    def _search(self, keyword: str, seen_ids: set) -> list[Job]:
-        params = urllib.parse.urlencode({"search_api_fulltext": keyword})
-        url = f"{self.SEARCH_URL}?{params}"
+    def _fetch(self, url: str) -> str | None:
+        try:
+            req = urllib.request.Request(url, headers=self.HEADERS)
+            with urllib.request.urlopen(req, timeout=20) as r:
+                return r.read().decode("utf-8", errors="replace")
+        except Exception as e:
+            self.log(f"  ⚠ 로드 실패: {e}")
+            return None
 
-        jobs = []
-        for page in range(0, 5):
-            page_url = f"{url}&page={page}"
-            try:
-                req = urllib.request.Request(page_url, headers=self.HEADERS)
-                with urllib.request.urlopen(req, timeout=20) as resp:
-                    html = resp.read().decode("utf-8", errors="replace")
-            except Exception as e:
-                self.log(f"  ⚠ 페이지 {page} 로드 실패: {e}")
-                break
-
-            page_jobs = self._parse(html, keyword, seen_ids)
-            if not page_jobs:
-                break
-            jobs.extend(page_jobs)
-
-        return jobs
-
-    def _parse(self, html: str, keyword: str, seen_ids: set) -> list[Job]:
+    def _parse(self, html: str, keywords: list[str], seen_ids: set) -> list[Job]:
         soup = BeautifulSoup(html, "html.parser")
         jobs = []
 
-        cards = soup.select(
-            "article.vacancy, div.view-row, li.views-row, "
-            "div[class*='job'], article[class*='vacancy'], tr.odd, tr.even"
-        )
-
-        for card in cards:
+        for card in soup.select("div.job_list_row"):
             try:
-                title_el = card.select_one(
-                    "h2 a, h3 a, h4 a, a.vacancy-title, "
-                    "span.field-content a, td.views-field-title a"
-                )
+                title_el = card.select_one("a.job_link")
                 if not title_el:
                     continue
                 title = title_el.get_text(strip=True)
-                href  = title_el.get("href", "")
-                url   = href if href.startswith("http") else self.BASE_URL + href
+                url   = title_el.get("href", "")
 
-                job_id = re.search(r"/(\d+)(?:[/?]|$)", href)
-                job_id = job_id.group(1) if job_id else re.sub(r"\W+", "_", title)[:30]
+                # 키워드 매칭 확인
+                matched = [kw for kw in keywords if kw.lower() in title.lower()]
+                if not matched:
+                    continue
+
+                job_id_el = card.select_one("span.field_value")
+                job_id    = job_id_el.get_text(strip=True) if job_id_el else re.sub(r"\W+", "_", title)[:30]
                 if job_id in seen_ids:
                     continue
 
-                org_el   = card.select_one("[class*='organization'], [class*='institution'], [class*='duty']")
-                org      = org_el.get_text(strip=True) if org_el else "OSCE"
-
-                loc_el   = card.select_one("[class*='location'], [class*='duty-station'], [class*='place']")
+                loc_el   = card.select_one("a.location")
                 location = loc_el.get_text(strip=True) if loc_el else "Europe"
 
-                cat_el   = card.select_one("[class*='category'], [class*='type'], [class*='grade']")
+                cat_el   = card.select_one("p.job_category span.jlr_value")
                 category = cat_el.get_text(strip=True) if cat_el else ""
 
-                date_el     = card.select_one("[class*='deadline'], [class*='closing'], [class*='date']")
-                deadline_str = date_el.get_text(strip=True) if date_el else ""
-                deadline_dt  = self._parse_date(deadline_str)
+                desc_el     = card.select_one("p.jlr_description")
+                description = desc_el.get_text(strip=True) if desc_el else ""
 
                 seen_ids.add(job_id)
                 jobs.append(Job(
                     title=title,
-                    organization=org,
+                    organization="OSCE",
                     location=location,
                     category=category,
-                    deadline=deadline_str,
+                    deadline="",
                     url=url,
                     job_id=job_id,
+                    description=description,
                     source_site="OSCE Jobs",
-                    deadline_dt=deadline_dt,
-                    keywords_matched=[keyword],
+                    deadline_dt=None,
+                    keywords_matched=matched,
                 ))
             except Exception:
                 continue
 
         return jobs
-
-    def _parse_date(self, s: str) -> datetime | None:
-        for fmt in ["%d %B %Y", "%d %b %Y", "%Y-%m-%d", "%B %d, %Y", "%d.%m.%Y"]:
-            try:
-                return datetime.strptime(s.strip(), fmt)
-            except ValueError:
-                continue
-        return None

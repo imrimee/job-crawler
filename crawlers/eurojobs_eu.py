@@ -3,7 +3,7 @@ crawlers/eurojobs_eu.py
 eurojobs.com 크롤러
 
 유럽 전역 영어권 취업 공고 전문 플랫폼.
-NGO, 국제기구, 컨설팅, 공공기관 포함.
+검색 URL: https://www.eurojobs.com/jobs?q=KEYWORD
 """
 
 import re
@@ -17,7 +17,7 @@ from crawlers.base import BaseCrawler, Job
 class EuroJobsEuCrawler(BaseCrawler):
 
     BASE_URL = "https://www.eurojobs.com"
-    SEARCH_URL = "https://www.eurojobs.com/search-results"
+    SEARCH_URL = "https://www.eurojobs.com/jobs"
 
     HEADERS = {
         "User-Agent": (
@@ -46,89 +46,73 @@ class EuroJobsEuCrawler(BaseCrawler):
         return all_jobs
 
     def _search(self, keyword: str, seen_ids: set) -> list[Job]:
-        params = urllib.parse.urlencode({"keywords": keyword, "where": "Europe"})
+        params = urllib.parse.urlencode({"q": keyword})
         url = f"{self.SEARCH_URL}?{params}"
-
         jobs = []
-        for page in range(1, 4):
-            page_url = f"{url}&page={page}"
-            try:
-                req = urllib.request.Request(page_url, headers=self.HEADERS)
-                with urllib.request.urlopen(req, timeout=20) as resp:
-                    html = resp.read().decode("utf-8", errors="replace")
-            except Exception as e:
-                self.log(f"  ⚠ 페이지 {page} 로드 실패: {e}")
-                break
 
-            page_jobs = self._parse(html, keyword, seen_ids)
-            if not page_jobs:
-                break
-            jobs.extend(page_jobs)
+        try:
+            req = urllib.request.Request(url, headers=self.HEADERS)
+            with urllib.request.urlopen(req, timeout=20) as r:
+                html = r.read().decode("utf-8", errors="replace")
+        except Exception as e:
+            self.log(f"  ⚠ 로드 실패: {e}")
+            return []
 
-        return jobs
+        return self._parse(html, keyword, seen_ids)
 
     def _parse(self, html: str, keyword: str, seen_ids: set) -> list[Job]:
         soup = BeautifulSoup(html, "html.parser")
         jobs = []
 
-        cards = soup.select(
-            "article.job, div.job-item, li.job-result, "
-            "div[class*='JobCard'], div[class*='job-listing'], "
-            "div[class*='vacancy'], section[class*='job']"
-        )
-
-        for card in cards:
+        for card in soup.select("article.ej-job-result"):
             try:
-                title_el = card.select_one(
-                    "h2 a, h3 a, h4 a, a[class*='title'], "
-                    "a[class*='job-title'], span[class*='title'] a"
-                )
+                title_el = card.select_one("a.ej-job-result__title")
                 if not title_el:
                     continue
                 title = title_el.get_text(strip=True)
-                href  = title_el.get("href", "")
-                url   = href if href.startswith("http") else self.BASE_URL + href
+                url   = title_el.get("href", "")
 
-                job_id = re.search(r"/(\d+)(?:[/?]|$)", href)
-                job_id = job_id.group(1) if job_id else re.sub(r"\W+", "_", title)[:30]
+                m = re.search(r"/jobs/(\d+)/", url)
+                job_id = m.group(1) if m else re.sub(r"\W+", "_", title)[:30]
                 if job_id in seen_ids:
                     continue
 
-                org_el   = card.select_one("[class*='company'], [class*='employer'], [class*='organization']")
-                org      = org_el.get_text(strip=True) if org_el else "Unknown"
+                # meta: Location / Company / Posted
+                meta_el  = card.select_one("div.ej-job-result__meta")
+                location = ""
+                org      = ""
+                date_posted = ""
 
-                loc_el   = card.select_one("[class*='location'], [class*='city'], [class*='country']")
-                location = loc_el.get_text(strip=True) if loc_el else "Europe"
-
-                cat_el   = card.select_one("[class*='category'], [class*='sector'], [class*='type']")
-                category = cat_el.get_text(strip=True) if cat_el else ""
-
-                date_el      = card.select_one("[class*='date'], [class*='deadline'], [class*='posted']")
-                deadline_str = date_el.get_text(strip=True) if date_el else ""
-                deadline_dt  = self._parse_date(deadline_str)
+                if meta_el:
+                    spans = meta_el.find_all("span")
+                    for span in spans:
+                        strong = span.find("strong")
+                        if not strong:
+                            continue
+                        label = strong.get_text(strip=True).rstrip(":")
+                        value = span.get_text(strip=True).replace(strong.get_text(strip=True), "").strip().lstrip(":")
+                        if label == "Location":
+                            location = value
+                        elif label == "Company":
+                            org = value
+                        elif label == "Posted":
+                            date_posted = value
 
                 seen_ids.add(job_id)
                 jobs.append(Job(
                     title=title,
-                    organization=org,
-                    location=location,
-                    category=category,
-                    deadline=deadline_str,
-                    url=url,
+                    organization=org or "Unknown",
+                    location=location or "Europe",
+                    category="",
+                    deadline="",
+                    url=url if url.startswith("http") else self.BASE_URL + url,
                     job_id=job_id,
+                    date_posted=date_posted,
                     source_site="EuroJobs",
-                    deadline_dt=deadline_dt,
+                    deadline_dt=None,
                     keywords_matched=[keyword],
                 ))
             except Exception:
                 continue
 
         return jobs
-
-    def _parse_date(self, s: str) -> datetime | None:
-        for fmt in ["%d %B %Y", "%d %b %Y", "%Y-%m-%d", "%B %d, %Y", "%b %d, %Y"]:
-            try:
-                return datetime.strptime(s.strip(), fmt)
-            except ValueError:
-                continue
-        return None

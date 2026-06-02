@@ -1,121 +1,125 @@
 """
 crawlers/reliefweb.py
-reliefweb.int/jobs 크롤러
+reliefweb.int/jobs 크롤러 (UK)
 
-ReliefWeb은 UN OCHA가 운영하며 공개 REST API를 제공합니다.
-Playwright 없이 requests로 직접 API를 호출하므로 빠르고 안정적입니다.
-API 문서: https://apidoc.rwlabs.org
+ReliefWeb API v1이 2026년에 종료(410 Gone)되어 HTML 스크래핑으로 전환.
+UK country code: C243
 """
 
-import json
+import re
 import urllib.request
 import urllib.parse
 from datetime import datetime
+from bs4 import BeautifulSoup
 from crawlers.base import BaseCrawler, Job
 
 
 class ReliefWebCrawler(BaseCrawler):
 
-    API_URL = "https://api.reliefweb.int/v1/jobs"
+    BASE_URL = "https://reliefweb.int"
+    SEARCH_URL = "https://reliefweb.int/jobs"
+    UK_FILTER = "(C243)"
+
+    HEADERS = {
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/120.0.0.0 Safari/537.36"
+        ),
+        "Accept": "text/html,application/xhtml+xml",
+        "Accept-Language": "en-GB,en;q=0.9",
+    }
 
     def fetch_jobs(self) -> list[Job]:
         keywords = self.conditions.get("keywords", [])
         all_jobs: list[Job] = []
         seen_ids: set[str] = set()
 
-        self.log(f"크롤링 시작 (공개 API 사용)")
+        self.log("크롤링 시작 (HTML 스크래핑 — UK 필터)")
 
         for keyword in keywords:
             self.log(f"검색 중: '{keyword}'")
-            jobs = self._fetch_by_keyword(keyword, seen_ids)
+            jobs = self._search(keyword, seen_ids)
             self.log(f"  → {len(jobs)}개 신규 공고 수집")
             all_jobs.extend(jobs)
 
         self.log(f"크롤링 완료 — 총 {len(all_jobs)}개")
         return all_jobs
 
-    def _fetch_by_keyword(self, keyword: str, seen_ids: set) -> list[Job]:
-        payload = {
-            "appname": "job-crawler",
-            "query": {
-                "value": keyword,
-                "fields": ["title", "body"]
-            },
-            "filter": {
-                "operator": "AND",
-                "conditions": [
-                    {"field": "country.name", "value": "United Kingdom"}
-                ]
-            },
-            "fields": {
-                "include": [
-                    "id", "title", "source.name", "city", "country",
-                    "date.created", "date.closing", "url_alias",
-                    "career_categories.name", "experience.name"
-                ]
-            },
-            "sort": ["date.created:desc"],
-            "limit": 50
-        }
-
-        try:
-            data = json.dumps(payload).encode("utf-8")
-            req = urllib.request.Request(
-                self.API_URL,
-                data=data,
-                headers={"Content-Type": "application/json", "Accept": "application/json"}
-            )
-            with urllib.request.urlopen(req, timeout=20) as resp:
-                result = json.loads(resp.read().decode("utf-8"))
-        except Exception as e:
-            self.log(f"  ⚠ API 호출 실패: {e}")
-            return []
-
+    def _search(self, keyword: str, seen_ids: set) -> list[Job]:
         jobs = []
-        for item in result.get("data", []):
-            fields = item.get("fields", {})
-            job_id = str(item.get("id", ""))
-            if job_id in seen_ids:
-                continue
+        for page in range(0, 3):
+            params = urllib.parse.urlencode({
+                "search": keyword,
+                "advanced-search": self.UK_FILTER,
+                "page": page,
+            })
+            url = f"{self.SEARCH_URL}?{params}"
+            try:
+                req = urllib.request.Request(url, headers=self.HEADERS)
+                with urllib.request.urlopen(req, timeout=20) as r:
+                    html = r.read().decode("utf-8", errors="replace")
+            except Exception as e:
+                self.log(f"  ⚠ 페이지 {page} 로드 실패: {e}")
+                break
 
-            title       = fields.get("title", "")
-            org         = fields.get("source", [{}])
-            org_name    = org[0].get("name", "Unknown") if org else "Unknown"
-            city        = fields.get("city", [{}])
-            city_name   = city[0].get("name", "") if city else ""
-            country     = fields.get("country", [{}])
-            country_name = country[0].get("name", "United Kingdom") if country else "United Kingdom"
-            location    = f"{city_name}, {country_name}".strip(", ")
-            categories  = fields.get("career_categories", [{}])
-            category    = categories[0].get("name", "") if categories else ""
-            closing     = fields.get("date", {}).get("closing", "")
-            created     = fields.get("date", {}).get("created", "")
-            url_alias   = fields.get("url_alias", "")
-            url         = f"https://reliefweb.int{url_alias}" if url_alias else "https://reliefweb.int/jobs"
-
-            deadline_str = closing[:10] if closing else ""
-            deadline_dt  = self._parse_date(deadline_str)
-            date_posted  = created[:10] if created else ""
-
-            seen_ids.add(job_id)
-            jobs.append(Job(
-                title=title,
-                organization=org_name,
-                location=location,
-                category=category,
-                deadline=deadline_str,
-                url=url,
-                job_id=job_id,
-                date_posted=date_posted,
-                source_site="ReliefWeb",
-                deadline_dt=deadline_dt,
-                keywords_matched=[keyword],
-            ))
+            page_jobs = self._parse(html, keyword, seen_ids)
+            if not page_jobs:
+                break
+            jobs.extend(page_jobs)
 
         return jobs
 
-    def _parse_date(self, date_str: str) -> datetime | None:
+    def _parse(self, html: str, keyword: str, seen_ids: set) -> list[Job]:
+        soup = BeautifulSoup(html, "html.parser")
+        jobs = []
+
+        for card in soup.select("article.rw-river-article--job"):
+            try:
+                job_id = card.get("data-id", "")
+                if not job_id or job_id in seen_ids:
+                    continue
+
+                title_el = card.select_one("h3.rw-river-article__title a")
+                if not title_el:
+                    continue
+                title = title_el.get_text(strip=True)
+                url   = title_el.get("href", self.SEARCH_URL)
+
+                country_el = card.select_one("p.rw-entity-country-slug a")
+                location   = country_el.get_text(strip=True) if country_el else "United Kingdom"
+
+                org_el = card.select_one("dd.rw-entity-meta__tag-value--source a")
+                org    = org_el.get_text(strip=True) if org_el else "Unknown"
+
+                posted_el   = card.select_one("dd.rw-entity-meta__tag-value--posted time")
+                date_posted = posted_el.get("datetime", "")[:10] if posted_el else ""
+
+                closing_el   = card.select_one("dd.rw-entity-meta__tag-value--closing-date time")
+                deadline_str = closing_el.get("datetime", "")[:10] if closing_el else ""
+                deadline_dt  = self._parse_date(deadline_str)
+
+                seen_ids.add(job_id)
+                jobs.append(Job(
+                    title=title,
+                    organization=org,
+                    location=location,
+                    category="",
+                    deadline=deadline_str,
+                    url=url,
+                    job_id=job_id,
+                    date_posted=date_posted,
+                    source_site="ReliefWeb",
+                    deadline_dt=deadline_dt,
+                    keywords_matched=[keyword],
+                ))
+            except Exception:
+                continue
+
+        return jobs
+
+    def _parse_date(self, s: str) -> datetime | None:
         try:
-            return datetime.strptime(date_str, "%Y-%m-%d")
+            return datetime.strptime(s[:10], "%Y-%m-%d")
         except Exception:
             return None

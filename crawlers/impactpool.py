@@ -6,7 +6,6 @@ impactpool.org 크롤러
 Junior/Internship 특화, 유럽 기반 포지션 비중 높음.
 """
 
-import re
 import urllib.request
 import urllib.parse
 from datetime import datetime
@@ -46,89 +45,71 @@ class ImpactpoolCrawler(BaseCrawler):
         return all_jobs
 
     def _search(self, keyword: str, seen_ids: set) -> list[Job]:
-        params = urllib.parse.urlencode({"q": keyword, "location": "Europe"})
+        params = urllib.parse.urlencode({"q": keyword})
         url = f"{self.SEARCH_URL}?{params}"
 
-        jobs = []
-        for page in range(1, 4):
-            page_url = f"{url}&page={page}"
-            try:
-                req = urllib.request.Request(page_url, headers=self.HEADERS)
-                with urllib.request.urlopen(req, timeout=20) as resp:
-                    html = resp.read().decode("utf-8", errors="replace")
-            except Exception as e:
-                self.log(f"  ⚠ 페이지 {page} 로드 실패: {e}")
-                break
+        try:
+            req = urllib.request.Request(url, headers=self.HEADERS)
+            with urllib.request.urlopen(req, timeout=20) as r:
+                html = r.read().decode("utf-8", errors="replace")
+        except Exception as e:
+            self.log(f"  ⚠ 로드 실패: {e}")
+            return []
 
-            page_jobs = self._parse(html, keyword, seen_ids)
-            if not page_jobs:
-                break
-            jobs.extend(page_jobs)
-
-        return jobs
+        return self._parse(html, keyword, seen_ids)
 
     def _parse(self, html: str, keyword: str, seen_ids: set) -> list[Job]:
         soup = BeautifulSoup(html, "html.parser")
         jobs = []
 
-        cards = soup.select(
-            "div.job-item, article.job, li.job-listing, "
-            "div[class*='JobCard'], div[class*='job-card'], "
-            "div[class*='opportunity'], li[class*='job']"
-        )
-
-        for card in cards:
+        for card in soup.select("div.job"):
             try:
-                title_el = card.select_one(
-                    "h2 a, h3 a, a.job-title, a[class*='title'], "
-                    "span.job-title a, div[class*='title'] a"
-                )
-                if not title_el:
+                link_el = card.select_one("a[href]")
+                if not link_el:
                     continue
-                title = title_el.get_text(strip=True)
-                href  = title_el.get("href", "")
-                url   = href if href.startswith("http") else self.BASE_URL + href
+                href   = link_el.get("href", "")
+                url    = href if href.startswith("http") else self.BASE_URL + href
 
-                job_id = re.search(r"/jobs?/(\d+)", href)
-                job_id = job_id.group(1) if job_id else re.sub(r"\W+", "_", title)[:30]
+                # job_id: /jobs/1216839
+                import re
+                m = re.search(r"/jobs/(\d+)", href)
+                job_id = m.group(1) if m else href.strip("/").split("/")[-1]
                 if job_id in seen_ids:
                     continue
 
-                org_el   = card.select_one("[class*='organization'], [class*='employer'], [class*='company']")
-                org      = org_el.get_text(strip=True) if org_el else "Unknown"
+                # 제목: div[type="cardTitle"]
+                title_el = card.select_one('div[type="cardTitle"]')
+                title    = title_el.get_text(strip=True) if title_el else ""
+                if not title:
+                    # img alt fallback
+                    img = card.select_one("img[alt]")
+                    title = img["alt"] if img and img.get("alt") else ""
+                if not title:
+                    continue
 
-                loc_el   = card.select_one("[class*='location'], [class*='city'], [class*='country']")
-                location = loc_el.get_text(strip=True) if loc_el else "Europe"
+                # 조직: 첫 번째 bodyEmphasis
+                org_els = card.select('div[type="bodyEmphasis"]')
+                org     = org_els[0].get_text(strip=True) if org_els else "Unknown"
 
-                cat_el   = card.select_one("[class*='category'], [class*='type'], [class*='level']")
-                category = cat_el.get_text(strip=True) if cat_el else ""
-
-                date_el      = card.select_one("[class*='deadline'], [class*='closing'], [class*='expire']")
-                deadline_str = date_el.get_text(strip=True) if date_el else ""
-                deadline_dt  = self._parse_date(deadline_str)
+                # 위치: 두 번째 레이아웃 내 첫 번째 텍스트
+                location = "Europe"
+                if len(org_els) > 1:
+                    location = org_els[1].get_text(strip=True)
 
                 seen_ids.add(job_id)
                 jobs.append(Job(
                     title=title,
                     organization=org,
                     location=location,
-                    category=category,
-                    deadline=deadline_str,
+                    category="",
+                    deadline="",
                     url=url,
                     job_id=job_id,
                     source_site="Impactpool",
-                    deadline_dt=deadline_dt,
+                    deadline_dt=None,
                     keywords_matched=[keyword],
                 ))
             except Exception:
                 continue
 
         return jobs
-
-    def _parse_date(self, s: str) -> datetime | None:
-        for fmt in ["%d %B %Y", "%d %b %Y", "%Y-%m-%d", "%B %d, %Y", "%b %d, %Y"]:
-            try:
-                return datetime.strptime(s.strip(), fmt)
-            except ValueError:
-                continue
-        return None

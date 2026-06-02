@@ -270,6 +270,18 @@ keywords:
   - "ODA"
 
 
+# ── EU 추가 키워드 (EU 사이트 전용) ─────────────────────────────
+keywords_eu:
+  - "traineeship"
+  - "trainee"
+  - "internship"
+  - "stage"
+  - "blue book"
+  - "junior professional"
+  - "associate"
+  - "fellowship"
+
+
 # ── 한국어 키워드 (KR 사이트 전용) ──────────────────────────────
 # 테스트 후 영어 키워드(B안)와 결과 수를 비교해 조정 예정
 keywords_kr:

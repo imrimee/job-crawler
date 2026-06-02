@@ -13,8 +13,10 @@ def filter_jobs(jobs: list[Job], conditions: dict) -> list[Job]:
 
     # ── 공통 설정 ──────────────────────────────────────────
     en_keywords  = [k.lower() for k in conditions.get("keywords",    [])]
+    eu_keywords  = [k.lower() for k in conditions.get("keywords_eu", [])]
     kr_keywords  = [k.lower() for k in conditions.get("keywords_kr", [])]
     all_keywords = en_keywords + kr_keywords
+    eu_all_keywords = en_keywords + eu_keywords
 
     uk_locations = [l.lower() for l in conditions.get("locations",    [])]
     kr_locations = [l.lower() for l in conditions.get("locations_kr", [])]
@@ -34,9 +36,11 @@ def filter_jobs(jobs: list[Job], conditions: dict) -> list[Job]:
         # ── 1. 키워드 필터 ──────────────────────────────
         searchable = (job.title + " " + job.description).lower()
         if region == "KR":
-            kw_pool = all_keywords   # KR: 영어+한국어
+            kw_pool = all_keywords      # KR: 영어+한국어
+        elif region == "EU":
+            kw_pool = eu_all_keywords   # EU: 영어+EU 추가키워드
         else:
-            kw_pool = en_keywords    # UK/EU: 영어만
+            kw_pool = en_keywords       # UK: 영어만
 
         if kw_pool:
             matched = [kw for kw in kw_pool if kw in searchable]

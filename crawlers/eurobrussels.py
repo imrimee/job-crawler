@@ -17,7 +17,7 @@ from crawlers.base import BaseCrawler, Job
 class EuroBrusselsCrawler(BaseCrawler):
 
     BASE_URL = "https://www.eurobrussels.com"
-    SEARCH_URL = "https://www.eurobrussels.com/jobs"
+    SEARCH_URL = "https://www.eurobrussels.com/jobs/"
 
     HEADERS = {
         "User-Agent": (
@@ -46,89 +46,63 @@ class EuroBrusselsCrawler(BaseCrawler):
         return all_jobs
 
     def _search(self, keyword: str, seen_ids: set) -> list[Job]:
-        params = urllib.parse.urlencode({"keywords": keyword})
+        params = urllib.parse.urlencode({"search": keyword})
         url = f"{self.SEARCH_URL}?{params}"
-
         jobs = []
-        for page in range(1, 4):
-            page_url = f"{url}&page={page}"
-            try:
-                req = urllib.request.Request(page_url, headers=self.HEADERS)
-                with urllib.request.urlopen(req, timeout=20) as resp:
-                    html = resp.read().decode("utf-8", errors="replace")
-            except Exception as e:
-                self.log(f"  ⚠ 페이지 {page} 로드 실패: {e}")
-                break
 
-            page_jobs = self._parse(html, keyword, seen_ids)
-            if not page_jobs:
-                break
-            jobs.extend(page_jobs)
+        try:
+            req = urllib.request.Request(url, headers=self.HEADERS)
+            with urllib.request.urlopen(req, timeout=20) as r:
+                html = r.read().decode("utf-8", errors="replace")
+        except Exception as e:
+            self.log(f"  ⚠ 로드 실패: {e}")
+            return []
 
-        return jobs
+        return self._parse(html, keyword, seen_ids)
 
     def _parse(self, html: str, keyword: str, seen_ids: set) -> list[Job]:
         soup = BeautifulSoup(html, "html.parser")
         jobs = []
 
-        cards = soup.select(
-            "div.job-listing, div.job-item, article.job, "
-            "li[class*='job'], div[class*='vacancy'], "
-            "div[class*='JobItem'], tr.job-row"
-        )
-
-        for card in cards:
+        for card in soup.select("li.premiumJobContainer, li.jobContainer"):
             try:
-                title_el = card.select_one(
-                    "h2 a, h3 a, h4 a, a.job-title, "
-                    "a[class*='title'], td.job-title a"
-                )
-                if not title_el:
+                link_el = card.select_one("a[href*='/job_display/']")
+                if not link_el:
                     continue
-                title = title_el.get_text(strip=True)
-                href  = title_el.get("href", "")
-                url   = href if href.startswith("http") else self.BASE_URL + href
+                href   = link_el.get("href", "")
+                url    = href if href.startswith("http") else self.BASE_URL + href
 
-                job_id = re.search(r"/(\d+)(?:[/?]|$)", href)
-                job_id = job_id.group(1) if job_id else re.sub(r"\W+", "_", title)[:30]
+                # job_id: /job_display/291820/...
+                m = re.search(r"/job_display/(\d+)/", href)
+                job_id = m.group(1) if m else re.sub(r"\W+", "_", href)[:30]
                 if job_id in seen_ids:
                     continue
 
-                org_el   = card.select_one("[class*='employer'], [class*='organization'], [class*='company']")
-                org      = org_el.get_text(strip=True) if org_el else "Unknown"
+                # 제목: img alt 속성
+                img = card.select_one("img[alt]")
+                title = img["alt"] if img and img.get("alt") else ""
+                if not title:
+                    continue
 
-                loc_el   = card.select_one("[class*='location'], [class*='city']")
-                location = loc_el.get_text(strip=True) if loc_el else "Brussels"
-
-                cat_el   = card.select_one("[class*='category'], [class*='sector'], [class*='type']")
-                category = cat_el.get_text(strip=True) if cat_el else ""
-
-                date_el      = card.select_one("[class*='deadline'], [class*='date'], [class*='closing']")
-                deadline_str = date_el.get_text(strip=True) if date_el else ""
-                deadline_dt  = self._parse_date(deadline_str)
+                # 텍스트 라인에서 조직·위치 추출
+                lines = [l.strip() for l in card.get_text("\n").split("\n") if l.strip()]
+                org      = lines[1] if len(lines) > 1 else "Unknown"
+                location = lines[2] if len(lines) > 2 else "Brussels"
 
                 seen_ids.add(job_id)
                 jobs.append(Job(
                     title=title,
                     organization=org,
                     location=location,
-                    category=category,
-                    deadline=deadline_str,
+                    category="EU Affairs",
+                    deadline="",
                     url=url,
                     job_id=job_id,
                     source_site="EuroBrussels",
-                    deadline_dt=deadline_dt,
+                    deadline_dt=None,
                     keywords_matched=[keyword],
                 ))
             except Exception:
                 continue
 
         return jobs
-
-    def _parse_date(self, s: str) -> datetime | None:
-        for fmt in ["%d %B %Y", "%d %b %Y", "%Y-%m-%d", "%B %d, %Y", "%b %d, %Y"]:
-            try:
-                return datetime.strptime(s.strip(), fmt)
-            except ValueError:
-                continue
-        return None
