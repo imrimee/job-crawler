@@ -82,4 +82,5 @@ jobs:
           git add .seen_jobs.json || true
           git add .seen_jobs_html.json || true
           git diff --staged --quiet || git commit -m "chore: daily job report $(date +'%Y-%m-%d')"
+          git pull --rebase origin main
           git push
