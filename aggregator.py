@@ -17,6 +17,7 @@ def filter_jobs(jobs: list[Job], conditions: dict) -> list[Job]:
     kr_keywords  = [k.lower() for k in conditions.get("keywords_kr", [])]
     all_keywords = en_keywords + kr_keywords
     eu_all_keywords = en_keywords + eu_keywords
+    exclude_kws  = [k.lower() for k in conditions.get("exclude_title_keywords", [])]
 
     uk_locations = [l.lower() for l in conditions.get("locations",    [])]
     kr_locations = [l.lower() for l in conditions.get("locations_kr", [])]
@@ -32,6 +33,12 @@ def filter_jobs(jobs: list[Job], conditions: dict) -> list[Job]:
     filtered = []
     for job in jobs:
         region = site_region.get(job.source_site, "UK").upper()
+
+        # ── 0. 기술 직군 제외 필터 (제목 기준) ─────────────
+        if exclude_kws:
+            title_lower = job.title.lower()
+            if any(ex in title_lower for ex in exclude_kws):
+                continue
 
         # ── 1. 키워드 필터 ──────────────────────────────
         searchable = (job.title + " " + job.description).lower()

@@ -259,6 +259,60 @@ sites:
 
 
 # ╔══════════════════════════════════════════════════════╗
+# ║              🚫  기술 직군 제외 키워드 (제목 기준)       ║
+# ╚══════════════════════════════════════════════════════╝
+# 공고 제목에 아래 키워드가 포함되면 결과에서 제외됩니다.
+# 모든 리전(UK/EU/KR) 공통 적용
+
+exclude_title_keywords:
+  # 소프트웨어 / 개발
+  - "software engineer"
+  - "software developer"
+  - "web developer"
+  - "web engineer"
+  - "frontend developer"
+  - "frontend engineer"
+  - "backend developer"
+  - "backend engineer"
+  - "full stack"
+  - "fullstack"
+  - "mobile developer"
+  - "ios developer"
+  - "android developer"
+  - "programmer"
+  # 데이터 / AI
+  - "data engineer"
+  - "data scientist"
+  - "machine learning"
+  - "deep learning"
+  - "artificial intelligence engineer"
+  - "ai engineer"
+  # 인프라 / 클라우드
+  - "devops"
+  - "cloud engineer"
+  - "cloud architect"
+  - "infrastructure engineer"
+  - "platform engineer"
+  - "site reliability"
+  - "network engineer"
+  - "database administrator"
+  - "database engineer"
+  - "systems administrator"
+  - "sysadmin"
+  # 보안
+  - "cybersecurity engineer"
+  - "security engineer"
+  # 기타 기술직
+  - "hardware engineer"
+  - "firmware engineer"
+  - "embedded engineer"
+  - "solutions architect"
+  - "software architect"
+  - "qa engineer"
+  - "test engineer"
+
+
+# ╔══════════════════════════════════════════════════════╗
 # ║              🔍  검색 키워드 설정                     ║
 # ╚══════════════════════════════════════════════════════╝
 
