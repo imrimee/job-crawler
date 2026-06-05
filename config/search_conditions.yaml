@@ -149,70 +149,70 @@ sites:
     url: "https://recruit.koica.go.kr"
     crawler: "koica"
     region: "KR"
-    enabled: true
+    enabled: false
     note: "한국국제협력단 공식 채용 포털. ODA·개발협력"
 
   - name: "국제기구채용정보센터(MOFA)"
     url: "https://www.unrecruit.mofa.go.kr"
     crawler: "mofa_unrecruit"
     region: "KR"
-    enabled: true
+    enabled: false
     note: "외교부 운영. UN·전문기구 채용공고 한국어 요약 제공"
 
   - name: "나라일터"
     url: "https://www.gojobs.go.kr"
     crawler: "gojobs"
     region: "KR"
-    enabled: true
+    enabled: false
     note: "인사혁신처 운영 공무원 채용 포털. 외교부·통일부 특채"
 
   - name: "알리오(ALIO)"
     url: "https://www.alio.go.kr"
     crawler: "alio"
     region: "KR"
-    enabled: true
+    enabled: false
     note: "기획재정부 운영. KOICA·KF·KIEP 등 공공기관 통합 채용"
 
   - name: "잡코리아"
     url: "https://www.jobkorea.co.kr"
     crawler: "jobkorea"
     region: "KR"
-    enabled: true
+    enabled: false
     note: "국내 최대 민간 취업 포털. 외국계·NGO·공공기관 공고"
 
   - name: "사람인"
     url: "https://www.saramin.co.kr"
     crawler: "saramin"
     region: "KR"
-    enabled: true
+    enabled: false
     note: "국내 2위 종합 취업 포털. 잡코리아와 병행 탐색"
 
   - name: "원티드"
     url: "https://www.wanted.co.kr"
     crawler: "wanted_kr"
     region: "KR"
-    enabled: true
+    enabled: false
     note: "스타트업·글로벌 기업 특화. 공개 API 사용"
 
   - name: "글로벌청년취업드림"
     url: "https://www.worldjob.or.kr"
     crawler: "worldjob"
     region: "KR"
-    enabled: true
+    enabled: false
     note: "한국산업인력공단 운영. K-Move·해외 인턴십 지원금 정보"
 
   - name: "인크루트"
     url: "https://www.incruit.com"
     crawler: "incruit"
     region: "KR"
-    enabled: true
+    enabled: false
     note: "외국계 기업·공공기관 인턴 특화"
 
   - name: "NGO잡스"
     url: "https://www.ngo.or.kr"
     crawler: "ngo_kr"
     region: "KR"
-    enabled: true
+    enabled: false
     note: "한국NGO협의회 운영. 국내 NGO·시민사회 특화"
 
 
