@@ -1,0 +1,2700 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Job Crawler — 2026년 07월 01일</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:       #0a1628;
+    --bg-mid:   #1a2f50;
+    --blue:     #009edb;
+    --gold:     #c9a84c;
+    --white:    #ffffff;
+    --muted:    rgba(255,255,255,0.45);
+    --border:   rgba(255,255,255,0.08);
+    --intern:   #66bb6a;
+    --pro:      #42a5f5;
+    --con:      #ba68c8;
+    --other:    #ffa726;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--white); min-height:100vh; }
+
+  /* ── HERO ───────────────────────────────────────── */
+  .hero {
+    background: linear-gradient(135deg, var(--bg) 0%, var(--bg-mid) 60%, #1a3a6e 100%);
+    padding: 56px 40px 44px;
+    position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content:''; position:absolute; top:-80px; right:-80px;
+    width:400px; height:400px;
+    background: radial-gradient(circle, rgba(0,158,219,.18) 0%, transparent 70%);
+  }
+  .hero-inner { max-width:1100px; margin:0 auto; position:relative; z-index:1; }
+  .brand { display:flex; align-items:center; gap:12px; margin-bottom:28px; }
+  .brand-icon { width:48px; height:48px; border:2px solid var(--blue); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; }
+  .brand-text { font-size:11px; letter-spacing:3px; text-transform:uppercase; color:var(--blue); }
+  .hero h1 { font-family:'Playfair Display',serif; font-size:clamp(32px,5vw,58px); font-weight:900; line-height:1.08; margin-bottom:10px; }
+  .hero h1 span { color:var(--gold); }
+  .hero-meta { font-size:13px; color:var(--muted); margin-bottom:32px; }
+  .stats { display:flex; gap:28px; flex-wrap:wrap; }
+  .stat { display:flex; flex-direction:column; gap:2px; }
+  .stat-n { font-family:'Playfair Display',serif; font-size:26px; font-weight:700; color:var(--gold); }
+  .stat-l { font-size:10px; color:var(--muted); letter-spacing:1.5px; text-transform:uppercase; }
+  .vline { width:1px; background:var(--border); align-self:stretch; }
+
+  /* ── FILTER BAR ─────────────────────────────────── */
+  .filter-bar {
+    background: rgba(255,255,255,.04);
+    border-top:1px solid var(--border); border-bottom:1px solid var(--border);
+    padding: 16px 40px;
+  }
+  .filter-inner { max-width:1100px; margin:0 auto; display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .f-label { font-size:10px; color:var(--muted); letter-spacing:2px; text-transform:uppercase; margin-right:4px; }
+  .f-btn { border:none; padding:6px 14px; border-radius:20px; font-family:'DM Sans',sans-serif; font-size:11px; font-weight:600; cursor:pointer; letter-spacing:.3px; transition:all .2s; }
+  .f-btn.all { background:var(--blue); color:#fff; }
+  .f-btn.site { background:rgba(0,158,219,.15); color:#7ecff5; border:1px solid rgba(0,158,219,.3); }
+  .f-btn:hover { filter:brightness(1.2); transform:translateY(-1px); }
+  .f-btn.active { box-shadow:0 0 0 2px #fff; }
+
+  /* ── TAGS BAR (keywords / locations) ────────────── */
+  .tags-bar { background:rgba(255,255,255,.02); padding:12px 40px; border-bottom:1px solid var(--border); }
+  .tags-inner { max-width:1100px; margin:0 auto; display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+  .tag-label { font-size:10px; color:var(--muted); letter-spacing:2px; text-transform:uppercase; margin-right:4px; }
+  .tag { font-size:11px; padding:3px 10px; border-radius:12px; background:rgba(255,255,255,.07); color:rgba(255,255,255,.6); }
+  .tag.kw { background:rgba(0,158,219,.12); color:#7ecff5; }
+  .tag.loc { background:rgba(201,168,76,.12); color:#f0d98a; }
+
+  /* ── MAIN ───────────────────────────────────────── */
+  .main { max-width:1100px; margin:0 auto; padding:44px 40px; }
+
+  /* Section header */
+  .sec-hdr { display:flex; align-items:center; gap:12px; margin:44px 0 20px; }
+  .sec-hdr:first-child { margin-top:0; }
+  .sec-dot { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+  .sec-title { font-family:'Playfair Display',serif; font-size:19px; font-weight:700; }
+  .sec-count { font-size:11px; color:var(--muted); }
+  .sec-line { flex:1; height:1px; background:var(--border); }
+
+  /* Cards grid */
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(310px,1fr)); gap:14px; }
+
+  .card {
+    background:rgba(255,255,255,.04);
+    border:1px solid var(--border);
+    border-radius:12px; padding:22px;
+    position:relative; overflow:hidden;
+    display:flex; flex-direction:column; gap:12px;
+    transition:all .25s ease; cursor:default;
+    animation: fadeUp .4s ease both;
+  }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+  .card:hover { background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.18); transform:translateY(-3px); box-shadow:0 12px 36px rgba(0,0,0,.4); }
+
+  .card-bar { position:absolute; top:0; left:0; right:0; height:3px; border-radius:12px 12px 0 0; }
+  .card-bar.intern     { background:linear-gradient(90deg,#2e7d32,var(--intern)); }
+  .card-bar.pro        { background:linear-gradient(90deg,#1565c0,var(--pro)); }
+  .card-bar.consultant { background:linear-gradient(90deg,#6a1b9a,var(--con)); }
+  .card-bar.other      { background:linear-gradient(90deg,#e65100,var(--other)); }
+
+  .card-top { display:flex; justify-content:space-between; align-items:flex-start; gap:8px; }
+  .badge { font-size:10px; font-weight:600; letter-spacing:1.2px; text-transform:uppercase; padding:3px 9px; border-radius:10px; white-space:nowrap; flex-shrink:0; }
+  .badge.intern     { background:rgba(102,187,106,.2); color:#81c784; }
+  .badge.pro        { background:rgba(66,165,245,.2); color:#64b5f6; }
+  .badge.consultant { background:rgba(186,104,200,.2); color:#ce93d8; }
+  .badge.other      { background:rgba(255,167,38,.2); color:#ffcc80; }
+
+  .card-id { font-size:10px; color:rgba(255,255,255,.22); font-family:monospace; }
+  .card-title { font-family:'Playfair Display',serif; font-size:16px; font-weight:700; line-height:1.35; }
+  .card-source { font-size:10px; color:rgba(255,255,255,.3); letter-spacing:1px; text-transform:uppercase; margin-top:-4px; }
+
+  .meta { display:flex; flex-direction:column; gap:6px; }
+  .meta-row { display:flex; align-items:flex-start; gap:7px; font-size:12px; }
+  .meta-icon { flex-shrink:0; opacity:.55; margin-top:1px; }
+  .meta-text { color:rgba(255,255,255,.55); line-height:1.4; }
+  .meta-text strong { color:rgba(255,255,255,.8); font-weight:500; }
+
+  .kw-pills { display:flex; gap:4px; flex-wrap:wrap; }
+  .kw-pill { font-size:10px; padding:2px 8px; border-radius:8px; background:rgba(0,158,219,.15); color:#7ecff5; }
+
+  .card-footer { display:flex; justify-content:space-between; align-items:center; padding-top:10px; border-top:1px solid var(--border); margin-top:auto; }
+  .deadline { font-size:11px; color:var(--muted); }
+  .deadline .date { font-weight:500; }
+  .deadline.urgent .date { color:#ef9a9a; }
+  .deadline.soon   .date { color:#ffcc80; }
+  .deadline.ok     .date { color:rgba(255,255,255,.7); }
+
+  .view-btn { font-size:10px; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:var(--blue); text-decoration:none; padding:5px 13px; border:1px solid rgba(0,158,219,.35); border-radius:16px; transition:all .2s; white-space:nowrap; }
+  .view-btn:hover { background:var(--blue); color:#fff; border-color:var(--blue); }
+
+  /* No results */
+  .empty { text-align:center; padding:60px 20px; color:var(--muted); font-size:14px; }
+
+  /* ── NEW JOBS SECTION ───────────────────────────── */
+  .new-section {
+    background: linear-gradient(135deg, rgba(0,158,219,.06) 0%, rgba(201,168,76,.06) 100%);
+    border: 1px solid rgba(201,168,76,.2);
+    border-radius: 12px;
+    padding: 28px 32px;
+    margin-bottom: 40px;
+  }
+  .new-section-hdr {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 20px;
+  }
+  .new-badge {
+    background: var(--gold); color: var(--bg);
+    font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
+    text-transform: uppercase; padding: 4px 10px; border-radius: 6px;
+    flex-shrink: 0;
+  }
+  .new-section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px; font-weight: 700; color: var(--gold);
+  }
+  .new-section-count { font-size: 12px; color: var(--muted); }
+  .new-empty {
+    text-align: center; padding: 32px 20px;
+    color: var(--muted); font-size: 13px;
+  }
+
+  /* ── ALL JOBS TOGGLE SECTION ────────────────────── */
+  .all-section { margin-top: 8px; }
+  .all-toggle-btn {
+    display: flex; align-items: center; gap: 10px;
+    width: 100%; background: none; border: 1px solid var(--border);
+    border-radius: 8px; padding: 14px 20px; cursor: pointer;
+    color: rgba(255,255,255,.6); font-family: 'DM Sans', sans-serif;
+    font-size: 13px; font-weight: 500; letter-spacing: .3px;
+    transition: all .2s; margin-bottom: 0;
+  }
+  .all-toggle-btn:hover { background: rgba(255,255,255,.04); color: #fff; }
+  .all-toggle-btn .toggle-icon { font-size: 16px; transition: transform .3s; }
+  .all-toggle-btn.open .toggle-icon { transform: rotate(180deg); }
+  .all-toggle-btn .toggle-count { font-size: 11px; color: var(--muted); margin-left: auto; }
+  .all-jobs-body { display: none; margin-top: 20px; }
+  .all-jobs-body.open { display: block; }
+
+  /* NEW badge on card */
+  .card-new-badge {
+    position: absolute; top: 14px; right: 14px;
+    background: var(--gold); color: var(--bg);
+    font-size: 9px; font-weight: 700; letter-spacing: 1.5px;
+    text-transform: uppercase; padding: 2px 8px; border-radius: 4px;
+  }
+
+  /* Archive nav */
+  .archive { max-width:1100px; margin:0 auto; padding:0 40px 48px; }
+  .archive h3 { font-size:13px; color:var(--muted); letter-spacing:1.5px; text-transform:uppercase; margin-bottom:12px; }
+  .archive-links { display:flex; gap:8px; flex-wrap:wrap; }
+  .archive-link { font-size:12px; padding:5px 14px; border-radius:16px; background:rgba(255,255,255,.05); color:rgba(255,255,255,.5); text-decoration:none; border:1px solid var(--border); transition:all .2s; }
+  .archive-link:hover { background:rgba(255,255,255,.1); color:#fff; }
+  .archive-link.current { background:rgba(0,158,219,.2); color:#7ecff5; border-color:rgba(0,158,219,.4); }
+
+  /* Manual check section */
+  .manual-check { max-width:1100px; margin:0 auto 32px; padding:0 40px; }
+  .manual-check-title { font-size:12px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:rgba(255,167,38,.8); margin-bottom:12px; display:flex; align-items:center; gap:8px; }
+  .manual-check-title::after { content:''; flex:1; height:1px; background:rgba(255,167,38,.2); }
+  .manual-check-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:10px; }
+  .manual-card { background:rgba(255,167,38,.05); border:1px solid rgba(255,167,38,.2); border-radius:8px; padding:14px 16px; display:flex; flex-direction:column; gap:6px; }
+  .manual-card-name { font-size:13px; font-weight:600; color:rgba(255,255,255,.85); }
+  .manual-card-reason { font-size:11px; color:rgba(255,167,38,.7); line-height:1.5; }
+  .manual-card-link { font-size:11px; color:var(--blue); text-decoration:none; margin-top:2px; }
+  .manual-card-link:hover { text-decoration:underline; }
+  .manual-badge-blocked { font-size:9px; font-weight:700; letter-spacing:1px; text-transform:uppercase; padding:2px 7px; border-radius:6px; background:rgba(220,38,38,.2); color:#f87171; display:inline-block; }
+  .manual-badge-intermittent { font-size:9px; font-weight:700; letter-spacing:1px; text-transform:uppercase; padding:2px 7px; border-radius:6px; background:rgba(255,167,38,.2); color:#fbbf24; display:inline-block; }
+
+  /* Footer */
+  footer { border-top:1px solid var(--border); padding:28px 40px; text-align:center; }
+  .foot-note { font-size:11px; color:rgba(255,255,255,.2); letter-spacing:.5px; }
+  .foot-note a { color:var(--blue); text-decoration:none; }
+
+  @media(max-width:680px) {
+    .hero,.filter-bar,.tags-bar,.main,.archive,footer { padding-left:16px; padding-right:16px; }
+    .stats { gap:16px; }
+    .grid { grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-inner">
+    <div class="brand">
+      <div class="brand-icon">🌐</div>
+      <span class="brand-text">Job Crawler — Auto Daily Report</span>
+    </div>
+    <h1>채용 공고 리포트<br><span>2026년 07월 01일</span></h1>
+    <p class="hero-meta">
+      검색 사이트: ReliefWeb (EU), EuroJobs, EU Traineeship (Blue Book), Guardian Jobs, Impactpool &nbsp;·&nbsp;
+      수집 시각: 12:46 KST
+    </p>
+    <div class="stats">
+      <div class="stat"><span class="stat-n" style="color:var(--gold)">8</span><span class="stat-l">🆕 신규</span></div>
+      <div class="vline"></div>
+      <div class="stat"><span class="stat-n">62</span><span class="stat-l">전체</span></div>
+      <div class="vline"></div>
+      
+      <div class="stat"><span class="stat-n">5</span><span class="stat-l">ReliefWeb (EU)</span></div>
+      <div class="vline"></div>
+      
+      <div class="stat"><span class="stat-n">21</span><span class="stat-l">EuroJobs</span></div>
+      <div class="vline"></div>
+      
+      <div class="stat"><span class="stat-n">12</span><span class="stat-l">EU Traineeship (Blue Book)</span></div>
+      <div class="vline"></div>
+      
+      <div class="stat"><span class="stat-n">22</span><span class="stat-l">Guardian Jobs</span></div>
+      <div class="vline"></div>
+      
+      <div class="stat"><span class="stat-n">2</span><span class="stat-l">Impactpool</span></div>
+      <div class="vline"></div>
+      
+      
+      <div class="stat"><span class="stat-n">12</span><span class="stat-l">인턴십</span></div>
+      <div class="vline"></div>
+      
+      <div class="stat"><span class="stat-n">50</span><span class="stat-l">기타</span></div>
+      
+      
+    </div>
+  </div>
+</header>
+
+<!-- FILTER BAR -->
+<div class="filter-bar">
+  <div class="filter-inner">
+    <span class="f-label">Filter</span>
+    <button class="f-btn all active" onclick="filterBy('all',this)">전체 보기</button>
+    
+    <button class="f-btn site" onclick="filterBy('reliefweb_(eu)',this)">ReliefWeb (EU)</button>
+    
+    <button class="f-btn site" onclick="filterBy('eurojobs',this)">EuroJobs</button>
+    
+    <button class="f-btn site" onclick="filterBy('eu_traineeship_(blue_book)',this)">EU Traineeship (Blue Book)</button>
+    
+    <button class="f-btn site" onclick="filterBy('guardian_jobs',this)">Guardian Jobs</button>
+    
+    <button class="f-btn site" onclick="filterBy('impactpool',this)">Impactpool</button>
+    
+  </div>
+</div>
+
+<!-- TAGS BAR -->
+<div class="tags-bar">
+  <div class="tags-inner">
+    <span class="tag-label">키워드</span>
+    
+    <span class="tag kw">political science</span>
+    
+    <span class="tag kw">international relations</span>
+    
+    <span class="tag kw">social science</span>
+    
+    <span class="tag kw">public administration</span>
+    
+    <span class="tag kw">political affairs</span>
+    
+    <span class="tag kw">governance</span>
+    
+    <span class="tag kw">peacebuilding</span>
+    
+    <span class="tag kw">policy analyst</span>
+    
+    <span class="tag kw">research officer</span>
+    
+    <span class="tag kw">humanitarian</span>
+    
+    <span class="tag kw">international development</span>
+    
+    <span class="tag kw">ODA</span>
+    
+    <span class="tag kw">entry level</span>
+    
+    <span class="tag kw">no prior experience</span>
+    
+    <span class="tag kw">1-2 years experience</span>
+    
+    <span class="tag kw">research</span>
+    
+    <span class="tag kw">political science major</span>
+    
+    <span class="tag kw">social science major</span>
+    
+    &nbsp;
+    <span class="tag-label">근무지</span>
+    
+    <span class="tag loc">📍 United Kingdom</span>
+    
+    <span class="tag loc">📍 London</span>
+    
+    <span class="tag loc">📍 UK</span>
+    
+    
+  </div>
+</div>
+
+<!-- MAIN -->
+<main class="main">
+
+
+
+  
+  
+
+  
+  <div class="new-section">
+    <div class="new-section-hdr">
+      <span class="new-badge">🆕 NEW</span>
+      <span class="new-section-title">오늘 새로 등록된 공고</span>
+      <span class="new-section-count">· 8개</span>
+    </div>
+
+    
+      
+      
+      <div class="sec-hdr" style="margin-top:20px;">
+        <div class="sec-dot" style="background:var(--gold)"></div>
+        <h2 class="sec-title" style="color:var(--gold)">기타</h2>
+        <span class="sec-count">· 8개</span>
+        <div class="sec-line"></div>
+      </div>
+      <div class="grid">
+        
+  
+  
+  <div class="card" data-site="eurojobs" data-cat="other">
+    <div class="card-bar other"></div>
+    <div class="card-new-badge">NEW</div>
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#593023</span>
+    </div>
+    <div>
+      <div class="card-title">Arabic speaking International Programmes Manager (Humanitarian Charity)</div>
+      <div class="card-source">EuroJobs</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>Civitas Recruitment Ltd</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">slough, United Kingdom</span></div>
+      
+      <div class="meta-row"><span class="meta-icon">📅</span><span class="meta-text">게시일: 19.05.2026</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">humanitarian</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://www.eurojobs.com/jobs/593023/arabic-speaking-international-programmes-manager-humanitarian-charity-593023" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="eurojobs" data-cat="other">
+    <div class="card-bar other"></div>
+    <div class="card-new-badge">NEW</div>
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#583478</span>
+    </div>
+    <div>
+      <div class="card-title">Arabic speaking International Programmes Manager (Humanitarian Charity)</div>
+      <div class="card-source">EuroJobs</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>Civitas Recruitment Ltd</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">london, United Kingdom</span></div>
+      
+      <div class="meta-row"><span class="meta-icon">📅</span><span class="meta-text">게시일: 19.05.2026</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">humanitarian</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://www.eurojobs.com/jobs/583478/arabic-speaking-international-programmes-manager-humanitarian-charity-583478" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="guardian_jobs" data-cat="other">
+    <div class="card-bar other"></div>
+    <div class="card-new-badge">NEW</div>
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#10129888</span>
+    </div>
+    <div>
+      <div class="card-title">Asset Management - Research Analyst - Global Special Situations, Vice President/Executive Director</div>
+      <div class="card-source">Guardian Jobs</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>J.P. MORGAN</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">London (West)</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">policy analyst</span><span class="kw-pill">research</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://jobs.theguardian.com 
+	/job/10129888/asset-management-research-analyst-global-special-situations-vice-president-executive-director/
+
+
+
+" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="guardian_jobs" data-cat="other">
+    <div class="card-bar other"></div>
+    <div class="card-new-badge">NEW</div>
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#10134608</span>
+    </div>
+    <div>
+      <div class="card-title">Assistant VP - Research</div>
+      <div class="card-source">Guardian Jobs</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>BARCLAYS</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">London (West)</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">policy analyst</span><span class="kw-pill">research</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://jobs.theguardian.com 
+	/job/10134608/assistant-vp-research/
+
+
+
+" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="impactpool" data-cat="other">
+    <div class="card-bar other"></div>
+    <div class="card-new-badge">NEW</div>
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#1223057</span>
+    </div>
+    <div>
+      <div class="card-title">Communications and External Relations Associate</div>
+      <div class="card-source">Impactpool</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>UNFPA - United Nations Population Fund</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">Kyiv</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">associate</span><span class="kw-pill">political science</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://www.impactpool.org/jobs/1223057" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="eurojobs" data-cat="other">
+    <div class="card-bar other"></div>
+    <div class="card-new-badge">NEW</div>
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#574127</span>
+    </div>
+    <div>
+      <div class="card-title">Gala Event Manager (temp role with a humanitarian charity)</div>
+      <div class="card-source">EuroJobs</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>Civitas Recruitment Ltd</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">slough, United Kingdom</span></div>
+      
+      <div class="meta-row"><span class="meta-icon">📅</span><span class="meta-text">게시일: 19.05.2026</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">humanitarian</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://www.eurojobs.com/jobs/574127/gala-event-manager-temp-role-with-a-humanitarian-charity-574127" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="guardian_jobs" data-cat="other">
+    <div class="card-bar other"></div>
+    <div class="card-new-badge">NEW</div>
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#10138068</span>
+    </div>
+    <div>
+      <div class="card-title">Research Project Administrator</div>
+      <div class="card-source">Guardian Jobs</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>CHM</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">London EC1Y/Home</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">research</span><span class="kw-pill">social science</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://jobs.theguardian.com 
+	/job/10138068/research-project-administrator/
+
+
+
+" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="impactpool" data-cat="other">
+    <div class="card-bar other"></div>
+    <div class="card-new-badge">NEW</div>
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#1223054</span>
+    </div>
+    <div>
+      <div class="card-title">Seconded National Expert – Researcher Gender-Based Violence (GBV)</div>
+      <div class="card-source">Impactpool</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>EIGE - European Institute for Gender Equality</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">Vilnius</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">research</span><span class="kw-pill">political science</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://www.impactpool.org/jobs/1223054" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+      </div>
+      
+    
+  </div>
+
+  
+  <div class="all-section">
+    <button class="all-toggle-btn" onclick="toggleAll(this)" id="all-toggle">
+      <span class="toggle-icon">▼</span>
+      <span>📋 전체 공고 보기</span>
+      <span class="toggle-count">62개 전체</span>
+    </button>
+    <div class="all-jobs-body" id="all-jobs-body">
+      
+      
+      <div class="sec-hdr">
+        <div class="sec-dot" style="background:var(--intern)"></div>
+        <h2 class="sec-title">인턴십</h2>
+        <span class="sec-count">· 12개 공고</span>
+        <div class="sec-line"></div>
+      </div>
+      <div class="grid" data-category="intern">
+        
+  
+  
+  <div class="card" data-site="eu_traineeship_(blue_book)" data-cat="intern">
+    <div class="card-bar intern"></div>
+    
+    <div class="card-top">
+      <span class="badge intern">Internship / Traineeship</span>
+      <span class="card-id">#Administrative_Traineeship</span>
+    </div>
+    <div>
+      <div class="card-title">Administrative Traineeship</div>
+      <div class="card-source">EU Traineeship (Blue Book)</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>European Commission</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">Brussels, Belgium / Luxembourg</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">traineeship</span><span class="kw-pill">trainee</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://traineeships.ec.europa.eu" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="eu_traineeship_(blue_book)" data-cat="intern">
+    <div class="card-bar intern"></div>
+    
+    <div class="card-top">
+      <span class="badge intern">Internship / Traineeship</span>
+      <span class="card-id">#Blue_Book_Traineeship_programme</span>
+    </div>
+    <div>
+      <div class="card-title">Blue Book Traineeship programme</div>
+      <div class="card-source">EU Traineeship (Blue Book)</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>European Commission</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">Brussels, Belgium / Luxembourg</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">traineeship</span><span class="kw-pill">blue book</span><span class="kw-pill">trainee</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://traineeships.ec.europa.eu" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="eu_traineeship_(blue_book)" data-cat="intern">
+    <div class="card-bar intern"></div>
+    
+    <div class="card-top">
+      <span class="badge intern">Internship / Traineeship</span>
+      <span class="card-id">#Blue_Book_account_for_current_trainees</span>
+    </div>
+    <div>
+      <div class="card-title">Blue Book account for current trainees</div>
+      <div class="card-source">EU Traineeship (Blue Book)</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>European Commission</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">Brussels, Belgium / Luxembourg</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">traineeship</span><span class="kw-pill">blue book</span><span class="kw-pill">trainee</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://traineeships.ec.europa.eu" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="eu_traineeship_(blue_book)" data-cat="intern">
+    <div class="card-bar intern"></div>
+    
+    <div class="card-top">
+      <span class="badge intern">Internship / Traineeship</span>
+      <span class="card-id">#Contact_the_Traineeships_Office</span>
+    </div>
+    <div>
+      <div class="card-title">Contact the Traineeships Office</div>
+      <div class="card-source">EU Traineeship (Blue Book)</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>European Commission</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">Brussels, Belgium / Luxembourg</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">traineeship</span><span class="kw-pill">trainee</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://traineeships.ec.europa.eu" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="eu_traineeship_(blue_book)" data-cat="intern">
+    <div class="card-bar intern"></div>
+    
+    <div class="card-top">
+      <span class="badge intern">Internship / Traineeship</span>
+      <span class="card-id">#Former_trainees_testimonials</span>
+    </div>
+    <div>
+      <div class="card-title">Former trainees&#39; testimonials</div>
+      <div class="card-source">EU Traineeship (Blue Book)</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>European Commission</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">Brussels, Belgium / Luxembourg</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">traineeship</span><span class="kw-pill">trainee</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://traineeships.ec.europa.eu" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="eu_traineeship_(blue_book)" data-cat="intern">
+    <div class="card-bar intern"></div>
+    
+    <div class="card-top">
+      <span class="badge intern">Internship / Traineeship</span>
+      <span class="card-id">#MyIntracomm_intranet_for_current_trainee</span>
+    </div>
+    <div>
+      <div class="card-title">MyIntracomm intranet for current trainees</div>
+      <div class="card-source">EU Traineeship (Blue Book)</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>European Commission</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">Brussels, Belgium / Luxembourg</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">traineeship</span><span class="kw-pill">trainee</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://traineeships.ec.europa.eu" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="eu_traineeship_(blue_book)" data-cat="intern">
+    <div class="card-bar intern"></div>
+    
+    <div class="card-top">
+      <span class="badge intern">Internship / Traineeship</span>
+      <span class="card-id">#This_five_month_paid_traineeship_provide</span>
+    </div>
+    <div>
+      <div class="card-title">This five-month paid traineeship provides graduates with:</div>
+      <div class="card-source">EU Traineeship (Blue Book)</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>European Commission</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">Brussels, Belgium / Luxembourg</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">traineeship</span><span class="kw-pill">trainee</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://traineeships.ec.europa.eu" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="eu_traineeship_(blue_book)" data-cat="intern">
+    <div class="card-bar intern"></div>
+    
+    <div class="card-top">
+      <span class="badge intern">Internship / Traineeship</span>
+      <span class="card-id">#Trainees_work_in_a_multicultural_environ</span>
+    </div>
+    <div>
+      <div class="card-title">Trainees work in a multicultural environment, develop professional skills, and gain insights into the operations of the European Commission and its executive agencies, decentralised agencies or other bodies, and European External Action Service.</div>
+      <div class="card-source">EU Traineeship (Blue Book)</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>European Commission</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">Brussels, Belgium / Luxembourg</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">traineeship</span><span class="kw-pill">trainee</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">will be open from 22 July 2026, 10:00 a.m. (Brussels time) to 28 August 2026, 10:00 a.m. (Brussels time)</span></div>
+      <a class="view-btn" href="https://traineeships.ec.europa.eu" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="eu_traineeship_(blue_book)" data-cat="intern">
+    <div class="card-bar intern"></div>
+    
+    <div class="card-top">
+      <span class="badge intern">Internship / Traineeship</span>
+      <span class="card-id">#Trainees_Committee_website</span>
+    </div>
+    <div>
+      <div class="card-title">Trainees&#39; Committee website</div>
+      <div class="card-source">EU Traineeship (Blue Book)</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>European Commission</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">Brussels, Belgium / Luxembourg</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">traineeship</span><span class="kw-pill">trainee</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://traineeships.ec.europa.eu" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="eu_traineeship_(blue_book)" data-cat="intern">
+    <div class="card-bar intern"></div>
+    
+    <div class="card-top">
+      <span class="badge intern">Internship / Traineeship</span>
+      <span class="card-id">#Translation_Traineeship</span>
+    </div>
+    <div>
+      <div class="card-title">Translation Traineeship</div>
+      <div class="card-source">EU Traineeship (Blue Book)</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>European Commission</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">Brussels, Belgium / Luxembourg</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">traineeship</span><span class="kw-pill">trainee</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://traineeships.ec.europa.eu" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="eu_traineeship_(blue_book)" data-cat="intern">
+    <div class="card-bar intern"></div>
+    
+    <div class="card-top">
+      <span class="badge intern">Internship / Traineeship</span>
+      <span class="card-id">#Twice_a_year_the_Commission_offers_a_5_m</span>
+    </div>
+    <div>
+      <div class="card-title">Twice a year, the Commission offers a 5-month paid traineeship</div>
+      <div class="card-source">EU Traineeship (Blue Book)</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>European Commission</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">Brussels, Belgium / Luxembourg</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">traineeship</span><span class="kw-pill">trainee</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://traineeships.ec.europa.eu" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="eu_traineeship_(blue_book)" data-cat="intern">
+    <div class="card-bar intern"></div>
+    
+    <div class="card-top">
+      <span class="badge intern">Internship / Traineeship</span>
+      <span class="card-id">#What_is_the_Blue_Book_Traineeship_progra</span>
+    </div>
+    <div>
+      <div class="card-title">What is the Blue Book Traineeship programme?</div>
+      <div class="card-source">EU Traineeship (Blue Book)</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>European Commission</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">Brussels, Belgium / Luxembourg</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">traineeship</span><span class="kw-pill">blue book</span><span class="kw-pill">trainee</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://traineeships.ec.europa.eu" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+      </div>
+      
+      
+      <div class="sec-hdr">
+        <div class="sec-dot" style="background:var(--other)"></div>
+        <h2 class="sec-title">기타</h2>
+        <span class="sec-count">· 50개 공고</span>
+        <div class="sec-line"></div>
+      </div>
+      <div class="grid" data-category="other">
+        
+  
+  
+  <div class="card" data-site="reliefweb_(eu)" data-cat="other">
+    <div class="card-bar other"></div>
+    
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#4217792</span>
+    </div>
+    <div>
+      <div class="card-title">Call for consultant - Research Analyst, Middle East</div>
+      <div class="card-source">ReliefWeb (EU)</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>ACLED</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text"></span></div>
+      
+      <div class="meta-row"><span class="meta-icon">📅</span><span class="meta-text">게시일: 2026-06-24</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">research</span><span class="kw-pill">political science</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline urgent">마감 <span class="date">2026-07-04 (D-2)</span></div>
+      <a class="view-btn" href="https://reliefweb.int/job/4217792/call-consultant-research-analyst-middle-east" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="reliefweb_(eu)" data-cat="other">
+    <div class="card-bar other"></div>
+    
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#4208793</span>
+    </div>
+    <div>
+      <div class="card-title">Expert Consultant – Governance, Localization &amp; Partnership</div>
+      <div class="card-source">ReliefWeb (EU)</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>Ektimisi</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text"></span></div>
+      
+      <div class="meta-row"><span class="meta-icon">📅</span><span class="meta-text">게시일: 2026-04-22</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">governance</span><span class="kw-pill">political science</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline urgent">마감 <span class="date">2026-07-07 (D-5)</span></div>
+      <a class="view-btn" href="https://reliefweb.int/job/4208793/expert-consultant-governance-localization-partnership" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="reliefweb_(eu)" data-cat="other">
+    <div class="card-bar other"></div>
+    
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#4217845</span>
+    </div>
+    <div>
+      <div class="card-title">Civic Space Research Intern</div>
+      <div class="card-source">ReliefWeb (EU)</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>CIVICUS</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text"></span></div>
+      
+      <div class="meta-row"><span class="meta-icon">📅</span><span class="meta-text">게시일: 2026-06-25</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">research</span><span class="kw-pill">political science</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline urgent">마감 <span class="date">2026-07-08 (D-6)</span></div>
+      <a class="view-btn" href="https://reliefweb.int/job/4217845/civic-space-research-intern" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="reliefweb_(eu)" data-cat="other">
+    <div class="card-bar other"></div>
+    
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#4218069</span>
+    </div>
+    <div>
+      <div class="card-title">Senior Migration Health Informatics Associate (AI) (G7) Valencia, Spain</div>
+      <div class="card-source">ReliefWeb (EU)</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>IOM</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">Spain</span></div>
+      
+      <div class="meta-row"><span class="meta-icon">📅</span><span class="meta-text">게시일: 2026-06-26</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">associate</span><span class="kw-pill">research officer</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline urgent">마감 <span class="date">2026-07-08 (D-6)</span></div>
+      <a class="view-btn" href="https://reliefweb.int/job/4218069/senior-migration-health-informatics-associate-ai-g7-valencia-spain" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="reliefweb_(eu)" data-cat="other">
+    <div class="card-bar other"></div>
+    
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#4217515</span>
+    </div>
+    <div>
+      <div class="card-title">Operations and Governance Assistant</div>
+      <div class="card-source">ReliefWeb (EU)</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>NP</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">Switzerland</span></div>
+      
+      <div class="meta-row"><span class="meta-icon">📅</span><span class="meta-text">게시일: 2026-06-24</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">public administration</span><span class="kw-pill">governance</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline soon">마감 <span class="date">2026-07-10 (D-8)</span></div>
+      <a class="view-btn" href="https://reliefweb.int/job/4217515/operations-and-governance-assistant" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="eurojobs" data-cat="other">
+    <div class="card-bar other"></div>
+    
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#682222</span>
+    </div>
+    <div>
+      <div class="card-title">Accounting &amp; Financial Reporting / Procurement &amp; Vendor Support Stageur</div>
+      <div class="card-source">EuroJobs</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>Toyota Financial Services Italia Spa</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">Ciampino, Italy</span></div>
+      
+      <div class="meta-row"><span class="meta-icon">📅</span><span class="meta-text">게시일: 20.05.2026</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">ODA</span><span class="kw-pill">stage</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://www.eurojobs.com/jobs/682222/accounting-financial-reporting-procurement-vendor-support-stageur-682222" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="eurojobs" data-cat="other">
+    <div class="card-bar other"></div>
+    
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#2174835</span>
+    </div>
+    <div>
+      <div class="card-title">Accounting &amp; Financial Reporting / Procurement &amp; Vendor Support Stageur</div>
+      <div class="card-source">EuroJobs</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>Toyota Financial Services Italia Spa</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">Monterotondo, Italy</span></div>
+      
+      <div class="meta-row"><span class="meta-icon">📅</span><span class="meta-text">게시일: 24.05.2026</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">ODA</span><span class="kw-pill">stage</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://www.eurojobs.com/jobs/2174835/accounting-financial-reporting-procurement-vendor-support-stageur-2174835" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="eurojobs" data-cat="other">
+    <div class="card-bar other"></div>
+    
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#861710</span>
+    </div>
+    <div>
+      <div class="card-title">Accounting &amp; Financial Reporting / Procurement &amp; Vendor Support Stageur</div>
+      <div class="card-source">EuroJobs</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>Toyota Financial Services Italia Spa</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">Guidonia, Italy</span></div>
+      
+      <div class="meta-row"><span class="meta-icon">📅</span><span class="meta-text">게시일: 20.05.2026</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">ODA</span><span class="kw-pill">stage</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://www.eurojobs.com/jobs/861710/accounting-financial-reporting-procurement-vendor-support-stageur-861710" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="eurojobs" data-cat="other">
+    <div class="card-bar other"></div>
+    
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#710120</span>
+    </div>
+    <div>
+      <div class="card-title">Accounting &amp; Financial Reporting / Procurement &amp; Vendor Support Stageur</div>
+      <div class="card-source">EuroJobs</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>Toyota Financial Services Italia Spa</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">Frascati, Italy</span></div>
+      
+      <div class="meta-row"><span class="meta-icon">📅</span><span class="meta-text">게시일: 20.05.2026</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">ODA</span><span class="kw-pill">stage</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://www.eurojobs.com/jobs/710120/accounting-financial-reporting-procurement-vendor-support-stageur-710120" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="eurojobs" data-cat="other">
+    <div class="card-bar other"></div>
+    
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#697650</span>
+    </div>
+    <div>
+      <div class="card-title">Accounting &amp; Financial Reporting / Procurement &amp; Vendor Support Stageur</div>
+      <div class="card-source">EuroJobs</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>Toyota Financial Services Italia Spa</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">Albano Laziale, Italy</span></div>
+      
+      <div class="meta-row"><span class="meta-icon">📅</span><span class="meta-text">게시일: 20.05.2026</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">ODA</span><span class="kw-pill">stage</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://www.eurojobs.com/jobs/697650/accounting-financial-reporting-procurement-vendor-support-stageur-697650" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="eurojobs" data-cat="other">
+    <div class="card-bar other"></div>
+    
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#682449</span>
+    </div>
+    <div>
+      <div class="card-title">Accounting &amp; Financial Reporting / Procurement &amp; Vendor Support Stageur</div>
+      <div class="card-source">EuroJobs</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>Toyota Financial Services Italia Spa</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">Marino, Italy</span></div>
+      
+      <div class="meta-row"><span class="meta-icon">📅</span><span class="meta-text">게시일: 20.05.2026</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">ODA</span><span class="kw-pill">stage</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://www.eurojobs.com/jobs/682449/accounting-financial-reporting-procurement-vendor-support-stageur-682449" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="eurojobs" data-cat="other">
+    <div class="card-bar other"></div>
+    
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#593024</span>
+    </div>
+    <div>
+      <div class="card-title">Arabic speaking International Programmes Manager (Humanitarian Charity)</div>
+      <div class="card-source">EuroJobs</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>Civitas Recruitment Ltd</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">slough, United Kingdom</span></div>
+      
+      <div class="meta-row"><span class="meta-icon">📅</span><span class="meta-text">게시일: 19.05.2026</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">humanitarian</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://www.eurojobs.com/jobs/593024/arabic-speaking-international-programmes-manager-humanitarian-charity-593024" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="eurojobs" data-cat="other">
+    <div class="card-bar other"></div>
+    
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#583477</span>
+    </div>
+    <div>
+      <div class="card-title">Arabic speaking International Programmes Manager (Humanitarian Charity)</div>
+      <div class="card-source">EuroJobs</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>Civitas Recruitment Ltd</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">london, United Kingdom</span></div>
+      
+      <div class="meta-row"><span class="meta-icon">📅</span><span class="meta-text">게시일: 19.05.2026</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">humanitarian</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://www.eurojobs.com/jobs/583477/arabic-speaking-international-programmes-manager-humanitarian-charity-583477" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="eurojobs" data-cat="other">
+    <div class="card-bar other"></div>
+    <div class="card-new-badge">NEW</div>
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#593023</span>
+    </div>
+    <div>
+      <div class="card-title">Arabic speaking International Programmes Manager (Humanitarian Charity)</div>
+      <div class="card-source">EuroJobs</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>Civitas Recruitment Ltd</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">slough, United Kingdom</span></div>
+      
+      <div class="meta-row"><span class="meta-icon">📅</span><span class="meta-text">게시일: 19.05.2026</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">humanitarian</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://www.eurojobs.com/jobs/593023/arabic-speaking-international-programmes-manager-humanitarian-charity-593023" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="eurojobs" data-cat="other">
+    <div class="card-bar other"></div>
+    <div class="card-new-badge">NEW</div>
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#583478</span>
+    </div>
+    <div>
+      <div class="card-title">Arabic speaking International Programmes Manager (Humanitarian Charity)</div>
+      <div class="card-source">EuroJobs</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>Civitas Recruitment Ltd</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">london, United Kingdom</span></div>
+      
+      <div class="meta-row"><span class="meta-icon">📅</span><span class="meta-text">게시일: 19.05.2026</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">humanitarian</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://www.eurojobs.com/jobs/583478/arabic-speaking-international-programmes-manager-humanitarian-charity-583478" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="guardian_jobs" data-cat="other">
+    <div class="card-bar other"></div>
+    <div class="card-new-badge">NEW</div>
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#10129888</span>
+    </div>
+    <div>
+      <div class="card-title">Asset Management - Research Analyst - Global Special Situations, Vice President/Executive Director</div>
+      <div class="card-source">Guardian Jobs</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>J.P. MORGAN</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">London (West)</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">policy analyst</span><span class="kw-pill">research</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://jobs.theguardian.com 
+	/job/10129888/asset-management-research-analyst-global-special-situations-vice-president-executive-director/
+
+
+
+" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="guardian_jobs" data-cat="other">
+    <div class="card-bar other"></div>
+    <div class="card-new-badge">NEW</div>
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#10134608</span>
+    </div>
+    <div>
+      <div class="card-title">Assistant VP - Research</div>
+      <div class="card-source">Guardian Jobs</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>BARCLAYS</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">London (West)</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">policy analyst</span><span class="kw-pill">research</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://jobs.theguardian.com 
+	/job/10134608/assistant-vp-research/
+
+
+
+" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="eurojobs" data-cat="other">
+    <div class="card-bar other"></div>
+    
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#1636595</span>
+    </div>
+    <div>
+      <div class="card-title">Associate Director (m/f/x), Policy, Advocacy &amp; Government Affairs – Iberia</div>
+      <div class="card-source">EuroJobs</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>CSL</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">Spain</span></div>
+      
+      <div class="meta-row"><span class="meta-icon">📅</span><span class="meta-text">게시일: 22.05.2026</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">associate</span><span class="kw-pill">political affairs</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://www.eurojobs.com/jobs/1636595/associate-director-mfx-policy-advocacy-government-affairs-iberia-1636595" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="guardian_jobs" data-cat="other">
+    <div class="card-bar other"></div>
+    
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#10120210</span>
+    </div>
+    <div>
+      <div class="card-title">Call for International Development Experts (UK and Europe teams and clients)</div>
+      <div class="card-source">Guardian Jobs</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>TETRA TECH</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">United Kingdom</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">international development</span><span class="kw-pill">political affairs</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://jobs.theguardian.com 
+	/job/10120210/call-for-international-development-experts-uk-and-europe-teams-and-clients-/
+
+
+
+" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="impactpool" data-cat="other">
+    <div class="card-bar other"></div>
+    <div class="card-new-badge">NEW</div>
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#1223057</span>
+    </div>
+    <div>
+      <div class="card-title">Communications and External Relations Associate</div>
+      <div class="card-source">Impactpool</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>UNFPA - United Nations Population Fund</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">Kyiv</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">associate</span><span class="kw-pill">political science</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://www.impactpool.org/jobs/1223057" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="guardian_jobs" data-cat="other">
+    <div class="card-bar other"></div>
+    
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#10131068</span>
+    </div>
+    <div>
+      <div class="card-title">Curriculum Manager - Social Sciences &amp; Finance</div>
+      <div class="card-source">Guardian Jobs</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>NEWHAM COLLEGE LONDON</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">Newham, London (Greater)</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">social science</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://jobs.theguardian.com 
+	/job/10131068/curriculum-manager-social-sciences-and-finance/
+
+
+
+" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="guardian_jobs" data-cat="other">
+    <div class="card-bar other"></div>
+    
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#10136462</span>
+    </div>
+    <div>
+      <div class="card-title">Data Governance and Enablement Manager</div>
+      <div class="card-source">Guardian Jobs</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>GUARDIAN NEWS AND MEDIA</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">London, GB-LND</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">governance</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://jobs.theguardian.com 
+	/job/10136462/data-governance-and-enablement-manager/?LinkSource=PromotedJob
+
+
+
+" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="eurojobs" data-cat="other">
+    <div class="card-bar other"></div>
+    
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#607221</span>
+    </div>
+    <div>
+      <div class="card-title">Director of Governance</div>
+      <div class="card-source">EuroJobs</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>The R&amp;A</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">scotland, United Kingdom</span></div>
+      
+      <div class="meta-row"><span class="meta-icon">📅</span><span class="meta-text">게시일: 19.05.2026</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">governance</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://www.eurojobs.com/jobs/607221/director-of-governance-607221" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="eurojobs" data-cat="other">
+    <div class="card-bar other"></div>
+    
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#607222</span>
+    </div>
+    <div>
+      <div class="card-title">Director of Governance</div>
+      <div class="card-source">EuroJobs</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>The R&amp;A</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">scotland, United Kingdom</span></div>
+      
+      <div class="meta-row"><span class="meta-icon">📅</span><span class="meta-text">게시일: 19.05.2026</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">governance</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://www.eurojobs.com/jobs/607222/director-of-governance-607222" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="eurojobs" data-cat="other">
+    <div class="card-bar other"></div>
+    
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#4625329</span>
+    </div>
+    <div>
+      <div class="card-title">Director of Research</div>
+      <div class="card-source">EuroJobs</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>Institute for Portfolio Alternatives</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">london, United Kingdom</span></div>
+      
+      <div class="meta-row"><span class="meta-icon">📅</span><span class="meta-text">게시일: 30.05.2026</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">research</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://www.eurojobs.com/jobs/4625329/job-4625329" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="eurojobs" data-cat="other">
+    <div class="card-bar other"></div>
+    
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#497871</span>
+    </div>
+    <div>
+      <div class="card-title">Gala Event Manager (temp role with a humanitarian charity)</div>
+      <div class="card-source">EuroJobs</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>Civitas Recruitment Ltd</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">london, United Kingdom</span></div>
+      
+      <div class="meta-row"><span class="meta-icon">📅</span><span class="meta-text">게시일: 19.05.2026</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">humanitarian</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://www.eurojobs.com/jobs/497871/gala-event-manager-temp-role-with-a-humanitarian-charity-497871" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="eurojobs" data-cat="other">
+    <div class="card-bar other"></div>
+    <div class="card-new-badge">NEW</div>
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#574127</span>
+    </div>
+    <div>
+      <div class="card-title">Gala Event Manager (temp role with a humanitarian charity)</div>
+      <div class="card-source">EuroJobs</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>Civitas Recruitment Ltd</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">slough, United Kingdom</span></div>
+      
+      <div class="meta-row"><span class="meta-icon">📅</span><span class="meta-text">게시일: 19.05.2026</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">humanitarian</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://www.eurojobs.com/jobs/574127/gala-event-manager-temp-role-with-a-humanitarian-charity-574127" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="guardian_jobs" data-cat="other">
+    <div class="card-bar other"></div>
+    
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#10130947</span>
+    </div>
+    <div>
+      <div class="card-title">Governance Manager</div>
+      <div class="card-source">Guardian Jobs</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>THE KINGS FUND</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">London (Central), London (Greater)</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">public administration</span><span class="kw-pill">governance</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://jobs.theguardian.com 
+	/job/10130947/governance-manager/?LinkSource=PremiumListing
+
+
+
+" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="eurojobs" data-cat="other">
+    <div class="card-bar other"></div>
+    
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#486232</span>
+    </div>
+    <div>
+      <div class="card-title">Governance Officer</div>
+      <div class="card-source">EuroJobs</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>LGPS Central</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">birmingham, United Kingdom</span></div>
+      
+      <div class="meta-row"><span class="meta-icon">📅</span><span class="meta-text">게시일: 19.05.2026</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">governance</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://www.eurojobs.com/jobs/486232/governance-officer-486232" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="guardian_jobs" data-cat="other">
+    <div class="card-bar other"></div>
+    
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#10133834</span>
+    </div>
+    <div>
+      <div class="card-title">Head of Data Operations and Governance</div>
+      <div class="card-source">Guardian Jobs</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>CANCER RESEARCH UK</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">London</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">governance</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://jobs.theguardian.com 
+	/job/10133834/head-of-data-operations-and-governance/?LinkSource=PremiumListing
+
+
+
+" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="guardian_jobs" data-cat="other">
+    <div class="card-bar other"></div>
+    
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#10128461</span>
+    </div>
+    <div>
+      <div class="card-title">Head of Governance</div>
+      <div class="card-source">Guardian Jobs</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>ENGLISH NATIONAL OPERA</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">London Coliseum, London</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">governance</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://jobs.theguardian.com 
+	/job/10128461/head-of-governance/?LinkSource=PromotedJob
+
+
+
+" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="guardian_jobs" data-cat="other">
+    <div class="card-bar other"></div>
+    
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#10136409</span>
+    </div>
+    <div>
+      <div class="card-title">Head of Research + Innovation</div>
+      <div class="card-source">Guardian Jobs</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>ASTHMA + LUNG UK</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">Hybrid, Aldgate, London (The White Chapel Building)</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">research</span><span class="kw-pill">research officer</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://jobs.theguardian.com 
+	/job/10136409/head-of-research-innovation/?LinkSource=PremiumListing
+
+
+
+" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="guardian_jobs" data-cat="other">
+    <div class="card-bar other"></div>
+    
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#10123379</span>
+    </div>
+    <div>
+      <div class="card-title">Head of Research and Involvement</div>
+      <div class="card-source">Guardian Jobs</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>The McPin Foundation</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">London (East)</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">research</span><span class="kw-pill">research officer</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://jobs.theguardian.com 
+	/job/10123379/head-of-research-and-involvement/?LinkSource=PromotedJob
+
+
+
+" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="eurojobs" data-cat="other">
+    <div class="card-bar other"></div>
+    
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#3045487</span>
+    </div>
+    <div>
+      <div class="card-title">Internship in the field of “Foundation models for the Remote Sensing Image time-series analysis”</div>
+      <div class="card-source">EuroJobs</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>Fondazione Bruno Kessler</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">Science and Technology Hub - Trento</span></div>
+      
+      <div class="meta-row"><span class="meta-icon">📅</span><span class="meta-text">게시일: 12.11.2024</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">internship</span><span class="kw-pill">social science major</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://www.eurojobs.com/jobs/3045487/internship-in-the-field-of-foundation-models-for-the-remote-sensing-image-time-series-analysis-3045487" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="guardian_jobs" data-cat="other">
+    <div class="card-bar other"></div>
+    
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#10129353</span>
+    </div>
+    <div>
+      <div class="card-title">Policy Analyst: Regulatory Affairs and Ethics</div>
+      <div class="card-source">Guardian Jobs</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>GENERAL COUNCIL OF THE BAR</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">London</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">policy analyst</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://jobs.theguardian.com 
+	/job/10129353/policy-analyst-regulatory-affairs-and-ethics/?LinkSource=PromotedJob
+
+
+
+" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="guardian_jobs" data-cat="other">
+    <div class="card-bar other"></div>
+    
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#10128014</span>
+    </div>
+    <div>
+      <div class="card-title">Policy Officer (Research and Innovation)</div>
+      <div class="card-source">Guardian Jobs</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>GUILD HE</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">Hybrid, flexible working model with an office located in central London.</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">research</span><span class="kw-pill">international relations</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://jobs.theguardian.com 
+	/job/10128014/policy-officer-research-and-innovation-/?LinkSource=PromotedJob
+
+
+
+" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="eurojobs" data-cat="other">
+    <div class="card-bar other"></div>
+    
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#702701</span>
+    </div>
+    <div>
+      <div class="card-title">Preparing the Future Research Fellowship with Caritas Internationalis (CI) (Rome, Italy)</div>
+      <div class="card-source">EuroJobs</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>University of Notre Dame</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">Rome, Italy</span></div>
+      
+      <div class="meta-row"><span class="meta-icon">📅</span><span class="meta-text">게시일: 20.05.2026</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">peacebuilding</span><span class="kw-pill">research</span><span class="kw-pill">fellowship</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://www.eurojobs.com/jobs/702701/preparing-the-future-research-fellowship-with-caritas-internationalis-ci-rome-italy-702701" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="eurojobs" data-cat="other">
+    <div class="card-bar other"></div>
+    
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#753348</span>
+    </div>
+    <div>
+      <div class="card-title">Research Assistant</div>
+      <div class="card-source">EuroJobs</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>Ecovia Intelligence</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">London, United Kingdom</span></div>
+      
+      <div class="meta-row"><span class="meta-icon">📅</span><span class="meta-text">게시일: 20.05.2026</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">research</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://www.eurojobs.com/jobs/753348/research-assistant-753348" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="guardian_jobs" data-cat="other">
+    <div class="card-bar other"></div>
+    
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#10133765</span>
+    </div>
+    <div>
+      <div class="card-title">Research Centre Manager</div>
+      <div class="card-source">Guardian Jobs</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>THE NATIONAL GALLERY</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">London (Central), London (Greater)</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">public administration</span><span class="kw-pill">research</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://jobs.theguardian.com 
+	/job/10133765/research-centre-manager/?LinkSource=PremiumListing
+
+
+
+" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="eurojobs" data-cat="other">
+    <div class="card-bar other"></div>
+    
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#619966</span>
+    </div>
+    <div>
+      <div class="card-title">Research Manager</div>
+      <div class="card-source">EuroJobs</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>We Are The People Team</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">slough, United Kingdom</span></div>
+      
+      <div class="meta-row"><span class="meta-icon">📅</span><span class="meta-text">게시일: 19.05.2026</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">research</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://www.eurojobs.com/jobs/619966/research-manager-619966" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="guardian_jobs" data-cat="other">
+    <div class="card-bar other"></div>
+    <div class="card-new-badge">NEW</div>
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#10138068</span>
+    </div>
+    <div>
+      <div class="card-title">Research Project Administrator</div>
+      <div class="card-source">Guardian Jobs</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>CHM</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">London EC1Y/Home</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">research</span><span class="kw-pill">social science</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://jobs.theguardian.com 
+	/job/10138068/research-project-administrator/
+
+
+
+" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="guardian_jobs" data-cat="other">
+    <div class="card-bar other"></div>
+    
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#10133281</span>
+    </div>
+    <div>
+      <div class="card-title">Research and Evidence Manager</div>
+      <div class="card-source">Guardian Jobs</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>NURSING &amp; MIDWIFERY COUNCIL</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">Portland Place office, London (hybrid: 2 days/week on-site)</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">research</span><span class="kw-pill">research officer</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://jobs.theguardian.com 
+	/job/10133281/research-and-evidence-manager/?LinkSource=PremiumListing
+
+
+
+" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="guardian_jobs" data-cat="other">
+    <div class="card-bar other"></div>
+    
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#10127996</span>
+    </div>
+    <div>
+      <div class="card-title">Research and Impact Officer</div>
+      <div class="card-source">Guardian Jobs</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>BOOKTRUST</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">Hybrid (London or Leeds office, 8+ days/month on-site)</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">research</span><span class="kw-pill">research officer</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://jobs.theguardian.com 
+	/job/10127996/research-and-impact-officer/?LinkSource=PromotedJob
+
+
+
+" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="guardian_jobs" data-cat="other">
+    <div class="card-bar other"></div>
+    
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#10128517</span>
+    </div>
+    <div>
+      <div class="card-title">Research and Policy Lead (Experimental Governance) – Nuffield Council on Bioethics</div>
+      <div class="card-source">Guardian Jobs</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>NUFFIELD FOUNDATION</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">London (Central), London (Greater)</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">governance</span><span class="kw-pill">research</span><span class="kw-pill">political science</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://jobs.theguardian.com 
+	/job/10128517/research-and-policy-lead-experimental-governance-nuffield-council-on-bioethics/?LinkSource=PromotedJob
+
+
+
+" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="guardian_jobs" data-cat="other">
+    <div class="card-bar other"></div>
+    
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#10130943</span>
+    </div>
+    <div>
+      <div class="card-title">Research and Teaching Associate</div>
+      <div class="card-source">Guardian Jobs</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>THE INSTITUTE OF ISMAILI STUDIES</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">London, Kings&#39; Cross</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">research</span><span class="kw-pill">international relations</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://jobs.theguardian.com 
+	/job/10130943/research-and-teaching-associate/?LinkSource=PremiumListing
+
+
+
+" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="guardian_jobs" data-cat="other">
+    <div class="card-bar other"></div>
+    
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#10118263</span>
+    </div>
+    <div>
+      <div class="card-title">Researcher</div>
+      <div class="card-source">Guardian Jobs</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>Fairer Finance</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">Central London office, combined with some days working at home</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">research</span><span class="kw-pill">social science</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://jobs.theguardian.com 
+	/job/10118263/researcher/?LinkSource=PromotedJob
+
+
+
+" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="impactpool" data-cat="other">
+    <div class="card-bar other"></div>
+    <div class="card-new-badge">NEW</div>
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#1223054</span>
+    </div>
+    <div>
+      <div class="card-title">Seconded National Expert – Researcher Gender-Based Violence (GBV)</div>
+      <div class="card-source">Impactpool</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>EIGE - European Institute for Gender Equality</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">Vilnius</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">research</span><span class="kw-pill">political science</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://www.impactpool.org/jobs/1223054" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="guardian_jobs" data-cat="other">
+    <div class="card-bar other"></div>
+    
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#10129340</span>
+    </div>
+    <div>
+      <div class="card-title">Senior Governance Manager and Council Secretary</div>
+      <div class="card-source">Guardian Jobs</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>GENERAL PHARMACEUTICAL COUNCIL</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">Canary Wharf, London (Greater)</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">governance</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://jobs.theguardian.com 
+	/job/10129340/senior-governance-manager-and-council-secretary/?LinkSource=PremiumListing
+
+
+
+" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="guardian_jobs" data-cat="other">
+    <div class="card-bar other"></div>
+    
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#10128646</span>
+    </div>
+    <div>
+      <div class="card-title">Senior Research and Due Diligence Officer, Development</div>
+      <div class="card-source">Guardian Jobs</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>ROYAL SOCIETY</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">London (Greater)</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">research</span><span class="kw-pill">research officer</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://jobs.theguardian.com 
+	/job/10128646/senior-research-and-due-diligence-officer-development-/?LinkSource=PromotedJob
+
+
+
+" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+  
+  
+  <div class="card" data-site="guardian_jobs" data-cat="other">
+    <div class="card-bar other"></div>
+    
+    <div class="card-top">
+      <span class="badge other">other</span>
+      <span class="card-id">#10127937</span>
+    </div>
+    <div>
+      <div class="card-title">Senior Researcher – Nuffield Council on Bioethics</div>
+      <div class="card-source">Guardian Jobs</div>
+    </div>
+    <div class="meta">
+      <div class="meta-row"><span class="meta-icon">🏛️</span><span class="meta-text"><strong>NUFFIELD FOUNDATION</strong></span></div>
+      <div class="meta-row"><span class="meta-icon">📍</span><span class="meta-text">London (Central), London (Greater)</span></div>
+      
+    </div>
+    
+    <div class="kw-pills"><span class="kw-pill">research</span><span class="kw-pill">social science</span></div>
+    
+    <div class="card-footer">
+      <div class="deadline ok">마감 <span class="date">미정</span></div>
+      <a class="view-btn" href="https://jobs.theguardian.com 
+	/job/10127937/senior-researcher-nuffield-council-on-bioethics/?LinkSource=PremiumListing
+
+
+
+" target="_blank">지원하기 →</a>
+    </div>
+  </div>
+  
+      </div>
+      
+    </div>
+  </div>
+
+
+</main>
+
+<!-- MANUAL CHECK SITES -->
+
+<div class="manual-check">
+  <div class="manual-check-title">⚠️ 수동 확인 필요 사이트</div>
+  <div class="manual-check-grid">
+    
+    <div class="manual-card">
+      <div class="manual-card-name">ReliefWeb (EU)</div>
+      
+      <span class="manual-badge-intermittent">간헐적 차단</span>
+      
+      <div class="manual-card-reason">GitHub Actions IP가 간헐적으로 차단됨 — 수동 확인 권장</div>
+      <a class="manual-card-link" href="https://reliefweb.int/jobs" target="_blank">직접 방문 →</a>
+    </div>
+    
+    <div class="manual-card">
+      <div class="manual-card-name">EPSO (EU Careers)</div>
+      
+      <span class="manual-badge-blocked">자동수집 불가</span>
+      
+      <div class="manual-card-reason">AWS WAF 봇 차단으로 자동 수집 불가 — 직접 방문 필요</div>
+      <a class="manual-card-link" href="https://eu-careers.europa.eu/en/search" target="_blank">직접 방문 →</a>
+    </div>
+    
+    <div class="manual-card">
+      <div class="manual-card-name">OSCE Jobs</div>
+      
+      <span class="manual-badge-intermittent">간헐적 차단</span>
+      
+      <div class="manual-card-reason">GitHub Actions IP가 간헐적으로 차단됨 — 수동 확인 권장</div>
+      <a class="manual-card-link" href="https://jobs.osce.org" target="_blank">직접 방문 →</a>
+    </div>
+    
+    <div class="manual-card">
+      <div class="manual-card-name">OECD Careers</div>
+      
+      <span class="manual-badge-blocked">자동수집 불가</span>
+      
+      <div class="manual-card-reason">403 Forbidden — 자동화 차단으로 직접 방문 필요</div>
+      <a class="manual-card-link" href="https://www.oecd.org/en/about/jobs.html" target="_blank">직접 방문 →</a>
+    </div>
+    
+  </div>
+</div>
+
+
+<!-- ARCHIVE NAV -->
+
+<div class="archive">
+  <h3>📁 이전 리포트</h3>
+  <div class="archive-links">
+    
+    <a class="archive-link "
+       href="jobs_2026-06-30.html">2026-06-30</a>
+    
+    <a class="archive-link "
+       href="jobs_2026-06-29.html">2026-06-29</a>
+    
+    <a class="archive-link "
+       href="jobs_2026-06-28.html">2026-06-28</a>
+    
+    <a class="archive-link "
+       href="jobs_2026-06-27.html">2026-06-27</a>
+    
+    <a class="archive-link "
+       href="jobs_2026-06-26.html">2026-06-26</a>
+    
+    <a class="archive-link "
+       href="jobs_2026-06-25.html">2026-06-25</a>
+    
+    <a class="archive-link "
+       href="jobs_2026-06-24.html">2026-06-24</a>
+    
+    <a class="archive-link "
+       href="jobs_2026-06-23.html">2026-06-23</a>
+    
+    <a class="archive-link "
+       href="jobs_2026-06-22.html">2026-06-22</a>
+    
+    <a class="archive-link "
+       href="jobs_2026-06-21.html">2026-06-21</a>
+    
+    <a class="archive-link "
+       href="jobs_2026-06-20.html">2026-06-20</a>
+    
+    <a class="archive-link "
+       href="jobs_2026-06-19.html">2026-06-19</a>
+    
+    <a class="archive-link "
+       href="jobs_2026-06-18.html">2026-06-18</a>
+    
+    <a class="archive-link "
+       href="jobs_2026-06-17.html">2026-06-17</a>
+    
+    <a class="archive-link "
+       href="jobs_2026-06-16.html">2026-06-16</a>
+    
+    <a class="archive-link "
+       href="jobs_2026-06-15.html">2026-06-15</a>
+    
+    <a class="archive-link "
+       href="jobs_2026-06-14.html">2026-06-14</a>
+    
+    <a class="archive-link "
+       href="jobs_2026-06-13.html">2026-06-13</a>
+    
+    <a class="archive-link "
+       href="jobs_2026-06-12.html">2026-06-12</a>
+    
+    <a class="archive-link "
+       href="jobs_2026-06-11.html">2026-06-11</a>
+    
+    <a class="archive-link "
+       href="jobs_2026-06-10.html">2026-06-10</a>
+    
+    <a class="archive-link "
+       href="jobs_2026-06-09.html">2026-06-09</a>
+    
+    <a class="archive-link "
+       href="jobs_2026-06-08.html">2026-06-08</a>
+    
+    <a class="archive-link "
+       href="jobs_2026-06-07.html">2026-06-07</a>
+    
+    <a class="archive-link "
+       href="jobs_2026-06-06.html">2026-06-06</a>
+    
+    <a class="archive-link "
+       href="jobs_2026-06-05.html">2026-06-05</a>
+    
+    <a class="archive-link "
+       href="jobs_2026-06-04.html">2026-06-04</a>
+    
+    <a class="archive-link "
+       href="jobs_2026-06-03.html">2026-06-03</a>
+    
+    <a class="archive-link "
+       href="jobs_2026-06-02.html">2026-06-02</a>
+    
+    <a class="archive-link "
+       href="jobs_2026-06-01.html">2026-06-01</a>
+    
+  </div>
+</div>
+
+
+<!-- FOOTER -->
+<footer>
+  <p class="foot-note">
+    자동 생성 — Job Crawler &nbsp;·&nbsp;
+    
+    <a href="https://careers.un.org" target="_blank">UN Careers</a>, 
+    
+    <a href="https://reliefweb.int/jobs" target="_blank">ReliefWeb</a>, 
+    
+    <a href="https://www.jobs.ac.uk" target="_blank">Jobs.ac.uk</a>, 
+    
+    <a href="https://jobs.theguardian.com" target="_blank">Guardian Jobs</a>, 
+    
+    <a href="https://www.prospects.ac.uk" target="_blank">Prospects.ac.uk</a>, 
+    
+    <a href="https://www.idealist.org" target="_blank">Idealist</a>, 
+    
+    <a href="https://www.developmentaid.org/jobs" target="_blank">DevelopmentAid</a>, 
+    
+    <a href="https://www.civilservicejobs.service.gov.uk" target="_blank">Civil Service Jobs</a>, 
+    
+    <a href="https://www.w4mp.org" target="_blank">W4MP</a>, 
+    
+    <a href="https://reliefweb.int/jobs" target="_blank">ReliefWeb (EU)</a>, 
+    
+    <a href="https://traineeships.ec.europa.eu" target="_blank">EU Traineeship (Blue Book)</a>, 
+    
+    <a href="https://jobs.osce.org" target="_blank">OSCE Jobs</a>, 
+    
+    <a href="https://www.impactpool.org/jobs" target="_blank">Impactpool</a>, 
+    
+    <a href="https://www.eurobrussels.com/jobs" target="_blank">EuroBrussels</a>, 
+    
+    <a href="https://www.eurojobs.com" target="_blank">EuroJobs</a>
+    
+    &nbsp;·&nbsp; 2026년 07월 01일 12:46 KST
+  </p>
+</footer>
+
+<script>
+function toggleAll(btn) {
+  const body = document.getElementById('all-jobs-body');
+  const isOpen = body.classList.toggle('open');
+  btn.classList.toggle('open', isOpen);
+  btn.querySelector('span:nth-child(2)').textContent = isOpen ? '📋 전체 공고 접기' : '📋 전체 공고 보기';
+}
+
+function filterBy(type, btn) {
+  document.querySelectorAll('.f-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  document.querySelectorAll('.card').forEach(card => {
+    if (type === 'all') {
+      card.style.display = '';
+    } else {
+      card.style.display = card.dataset.site === type ? '' : 'none';
+    }
+  });
+
+  // 섹션 헤더 표시/숨김
+  document.querySelectorAll('.sec-hdr').forEach(hdr => {
+    const grid = hdr.nextElementSibling;
+    if (!grid) return;
+    const visible = Array.from(grid.querySelectorAll('.card'))
+                         .some(c => c.style.display !== 'none');
+    hdr.style.display = visible ? '' : 'none';
+    grid.style.display = visible ? '' : 'none';
+  });
+}
+</script>
+</body>
+</html>
